@@ -19,6 +19,7 @@ module micm_type_defs
 !! | local_name | standard_name                                    | long_name                               | units       | rank | type      |    kind   | intent | optional |
 !! |------------|--------------------------------------------------|-----------------------------------------|-------------|------|-----------|-----------|--------|----------|
 !! | my_co(:)   | my_volume_mixing_ratio_co                        | volume mixing ratio co                  | mole mole-1 |    1 | real      | kind_phys | none   | F        |
+!! | my_o3(:)   | my_volume_mixing_ratio_o3                        | volume mixing ratio o3                  | mole mole-1 |    1 | real      | kind_phys | none   | F        |
 !! | errmsg     | error_message                                    | CCPP error message                      | none        |    0 | character | len=*     | out    | F        | 
 !! | errflg     | error_flag                                       | CCPP error flag                         | flag        |    0 | integer   |           | out    | F        |
 !!

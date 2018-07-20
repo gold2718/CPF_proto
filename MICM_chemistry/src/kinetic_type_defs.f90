@@ -1,6 +1,6 @@
 module kinetic_type_defs
 
-integer, parameter :: kind_phys = 8
+use machine, only: kind_phys
 
 
 !> \section arg_table_kinetic_data_type  Argument Table

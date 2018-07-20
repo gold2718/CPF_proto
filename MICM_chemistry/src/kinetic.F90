@@ -77,15 +77,13 @@
 
 module kinetic
 
-!  use machine, only: kind_phys
+  use machine, only: kind_phys
   implicit none
 
   private
   public :: kinetic_init 
   public :: kinetic_run
   public :: kinetic_finalize
-
-  integer, parameter :: kind_phys = 8
 
 contains
 
@@ -130,9 +128,9 @@ contains
 
     t_inverse = 1_kind_phys/T
 
-    k_rateConst(1) = 0.04_kind_phys
+    k_rateConst(1) = 0.04_kind_phys  ! will be used for my_co
     k_rateConst(2) = 1e+4_kind_phys
-    k_rateConst(3) = 1.5e7_kind_phys * exp(0 * t_inverse)
+    k_rateConst(3) = 1.5e7_kind_phys * exp(0 * t_inverse) ! will be used for my_o3
 
     write(6,*) ' inside kinetic_run T=',T
 

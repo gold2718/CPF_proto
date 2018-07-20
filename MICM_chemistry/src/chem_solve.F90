@@ -77,7 +77,7 @@
 
 module chem_solve
 
-!  use machine, only: kind_phys
+  use machine, only: kind_phys
 
   implicit none
 
@@ -86,27 +86,28 @@ module chem_solve
   public :: chem_solve_run
   public :: chem_solve_finalize
 
-  integer, parameter :: kind_phys = 8
-  
 contains
 
 !> \section arg_table_chem_solve_init Argument Table
 !! | local_name | standard_name                                    | long_name                               | units       | rank | type      | kind      | intent | optional |
 !! |------------|--------------------------------------------------|-----------------------------------------|-------------|------|-----------|-----------|--------|----------|
 !! | co         | my_volume_mixing_ratio_co                        | CO volume mixing ratio                  | mole mole-1 |    1 | real      | kind_phys | inout  | F        |
+!! | o3         | my_volume_mixing_ratio_o3                        | O3 volume mixing ratio                  | mole mole-1 |    1 | real      | kind_phys | inout  | F        |
 !! | errmsg     | error_message                                    | CCPP error message                      | none        |    0 | character | len=512   | out    | F        |
 !! | errflg     | error_flag                                       | CCPP error flag                         | flag        |    0 | integer   |           | out    | F        |
 !!
-  subroutine chem_solve_init (co, errmsg, errflg)
+  subroutine chem_solve_init (co, o3, errmsg, errflg)
 
     implicit none
 
     !--- arguments
     real(kind_phys),pointer, intent(inout) :: co(:)
+    real(kind_phys),pointer, intent(inout) :: o3(:)
     character(len=512), intent(out)   :: errmsg
     integer,          intent(out)   :: errflg
   
     co(:) = 100_kind_phys
+    o3(:) = 1e-6_kind_phys
 
   end subroutine chem_solve_init
 
@@ -115,16 +116,18 @@ contains
 !! |------------|--------------------------------------------------|-----------------------------------------|-------------|------|-----------|-----------|--------|----------|
 !! | k_rateConst| k_rate_constants                                 | k Rate Constants                        | none        |    1 | real      | kind_phys | in     | F        |
 !! | co         | my_volume_mixing_ratio_co                        | CO  volume mixing ratio                 | mole mole-1 |    1 | real      | kind_phys | inout  | F        |
+!! | o3         | my_volume_mixing_ratio_o3                        | O3  volume mixing ratio                 | mole mole-1 |    1 | real      | kind_phys | inout  | F        |
 !! | errmsg     | error_message                                    | CCPP error message                      | none        |    0 | character | len=512   | out    | F        |
 !! | errflg     | error_flag                                       | CCPP error flag                         | flag        |    0 | integer   |           | out    | F        |
 !!
-  subroutine chem_solve_run ( k_rateConst, co, errmsg, errflg)
+  subroutine chem_solve_run ( k_rateConst, co, o3, errmsg, errflg)
 
     implicit none
 
     !--- arguments
     real(kind_phys),pointer, intent(in)    :: k_rateConst(:)
     real(kind_phys), pointer,intent(inout) :: co(:)      
+    real(kind_phys), pointer,intent(inout) :: o3(:)      
     character(len=512), intent(out)   :: errmsg
     integer,          intent(out)   :: errflg
 
@@ -140,10 +143,9 @@ contains
     !--- actual code
     ! add your code here
 
-    co(1) = co(1)*k_rateConst(1)
-    co(2:) = co(2:)*0.5_kind_phys
+    co(:) = co(:)*k_rateConst(1)
+    o3(:) = o3(:)*k_rateConst(3)
 
-    
     ! in case of errors, set errflg to a value != 0,
     ! create a meaningfull error message and return
 
