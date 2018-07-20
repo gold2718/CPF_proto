@@ -77,6 +77,7 @@
 
 module kinetic
 
+!  use machine, only: kind_phys
   implicit none
 
   private
@@ -85,7 +86,7 @@ module kinetic
   public :: kinetic_finalize
 
   integer, parameter :: kind_phys = 8
-  
+
 contains
 
 !> \section arg_table_kinetic_init  Argument Table

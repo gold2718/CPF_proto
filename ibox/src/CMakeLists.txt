@@ -1,5 +1,5 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
-PROJECT(scm)
+PROJECT(ibox)
 ENABLE_LANGUAGE(Fortran)
 
 include(CMakeForceCompiler)
@@ -10,15 +10,10 @@ SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake/modules)
 SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} $ENV{NETCDF})
 
 SET(CCPP_SRC ${CMAKE_SOURCE_DIR}/../../ccpp-framework)
-SET(GFSPHYSICS_SRC ${CMAKE_SOURCE_DIR}/../../ccpp-physics)
+SET(MICM_SRC ${CMAKE_SOURCE_DIR}/../../MICM_chemistry)
 
 # Use rpaths on MacOSX
 set(CMAKE_MACOSX_RPATH 1)
-
-#Copy/link data to build directory
-set(physics_data_dir ${CMAKE_SOURCE_DIR}/../data/GFS_physics_data)
-file(GLOB physics_data_files "${physics_data_dir}/*")
-file(COPY ${physics_data_files} DESTINATION ${CMAKE_BINARY_DIR}/)
 
 #------------------------------------------------------------------------------
 # Set a default build type if none was specified
@@ -36,9 +31,9 @@ endif()
 ADD_COMPILE_OPTIONS(-O0)
 
 ADD_SUBDIRECTORY(${CCPP_SRC} ${CMAKE_BINARY_DIR}/ccpp-framework)
-ADD_SUBDIRECTORY(${GFSPHYSICS_SRC} ${CMAKE_BINARY_DIR}/ccpp-physics)
+ADD_SUBDIRECTORY(${MICM_SRC} ${CMAKE_BINARY_DIR}/MICM_chemistry)
 
-SET(scm_source_files ibox.F90
+SET(micm_source_files ibox.F90
             micm_type_defs.f90
             ../../MICM_chemistry/src/kinetic_type_defs.f90
 )
@@ -49,7 +44,7 @@ FIND_PACKAGE(NetCDF)
 
 INCLUDE_DIRECTORIES(${NETCDF_INCLUDES})
 INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/ccpp-framework/src)
-INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/ccpp-physics)
+INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/MICM_chemistry)
 
 if (${CMAKE_Fortran_COMPILER_ID} MATCHES "GNU")
 #  gfortran
@@ -124,8 +119,8 @@ else(OPENMP)
   message (STATUS "Disable OpenMP support for C/C++/Fortran compiler")
 endif()
 
-ADD_EXECUTABLE(ibox ${scm_source_files})
-TARGET_LINK_LIBRARIES(ibox ccppphys ccpp ${NETCDF_LIBRARIES})
+ADD_EXECUTABLE(ibox ${micm_source_files})
+TARGET_LINK_LIBRARIES(ibox micmchem ccpp ${NETCDF_LIBRARIES})
 #set_target_properties(ibox PROPERTIES
 #                               COMPILE_FLAGS "${CMAKE_Fortran_FLAGS}"
 #                               LINK_FLAGS "${CMAKE_Fortran_FLAGS}")

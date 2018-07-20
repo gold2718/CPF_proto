@@ -77,6 +77,8 @@
 
 module chem_solve
 
+!  use machine, only: kind_phys
+
   implicit none
 
   private
