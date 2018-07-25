@@ -4,13 +4,11 @@ use machine, only: kind_phys
 
 implicit none
 
-!integer, parameter :: kind_phys = 8
-
 contains
 
 subroutine ibox_main_sub()
 
-! Add the CCPP specific types and functions
+  ! Add the CCPP specific types and functions
   use :: ccpp_api,                           &
          only: ccpp_t,                       &
                ccpp_init,                    &
@@ -20,25 +18,23 @@ subroutine ibox_main_sub()
                ccpp_physics_finalize,        &
                ccpp_field_add
 
-!  use :: iso_c_binding, only: c_loc
-
 #include "ccpp_modules.inc"
 
   implicit none
 
-! Create a simplistic state variable
+  ! Create a simplistic state variable
   type my_state
     real(kind_phys) :: Temperature
   end type my_state
   type(my_state), target :: state_host
 
   integer                           :: i, j
-  real (kind=8), pointer :: my_co(:)
-  real (kind=8), pointer :: my_o3(:)
+  real (kind=kind_phys), pointer :: my_co(:)
+  real (kind=kind_phys), pointer :: my_o3(:)
   character(len=512)     :: errmsg
   integer :: errflg
 
-! Create the CCPP required cdata structure
+  ! Create the CCPP required cdata structure
   type(ccpp_t), allocatable, target                      :: cdata(:)
 
   integer                                                :: ierr
@@ -46,12 +42,16 @@ subroutine ibox_main_sub()
   integer ,parameter :: nlevs=8
   integer ,parameter :: ntimes=3
 
-  state_host%Temperature = 600.
-
+  ! Allocate the host variables
   allocate(k_rateConst(3))
   allocate(my_co(nlevs))
   allocate(my_o3(nlevs))
   allocate(cdata(ncols))
+
+  ! Initialize the host variables
+  state_host%Temperature = 200.
+  my_co(:) = 100_kind_phys
+  my_o3(:) = 1e-6_kind_phys
 
   do i = 1, ncols
 
@@ -62,7 +62,7 @@ subroutine ibox_main_sub()
           stop
       end if
 
-    !use ccpp_fields.inc to call ccpp_field_add for all variables to be exposed to CCPP (this is auto-generated from /src/ccpp/scripts/ccpp_prebuild.py - the script parses tables in the xxx_type_defs.f90)
+   ! use ccpp_fields.inc to call ccpp_field_add for all variables to be exposed to CCPP (this is auto-generated from /src/ccpp/scripts/ccpp_prebuild.py - the script parses tables in the xxx_type_defs.f90)
 
 #  include "ccpp_fields.inc"
 
@@ -74,7 +74,7 @@ subroutine ibox_main_sub()
 
      call ccpp_field_add(cdata(i), 'air_temperature', state_host%Temperature, ierr, 'K')
 
-      !initialize each column's physics
+      ! initialize each column's physics
       call ccpp_physics_init(cdata(i), ierr=ierr)
       if (ierr/=0) then
           write(*,'(a,i0,a)') 'An error occurred in ccpp_physics_init for column ', i, '. Exiting...'
@@ -88,11 +88,13 @@ subroutine ibox_main_sub()
   write(6,*) 'After initialization, my_o3(1)=',my_o3(1)
   write(6,*) ' '
 
+  ! loop over all time steps
   do j = 1, ntimes
     write(6,*) 'At time step', j, 'in host model state_host%Temperature =', state_host%Temperature
     do i = 1, ncols
        call ccpp_physics_run(cdata(i), ierr=ierr)
        if (ierr/=0) then
+           write(*,*) errmsg
            write(*,'(a,i0,a)') 'An error occurred in ccpp_physics_run for column ', i, '. Exiting...'
            stop
        end if
@@ -100,7 +102,10 @@ subroutine ibox_main_sub()
        write(6,*) ' At time j=',j,' my_co(1)=',my_co(1)
        write(6,*) ' At time j=',j,' my_o3(1)=',my_o3(1)
      end do
+
+     ! Decrease the temperature every time step
      state_host%Temperature = state_host%Temperature - 100._kind_phys
+
   end do
 
 
