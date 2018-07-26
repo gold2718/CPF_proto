@@ -22,17 +22,9 @@ subroutine ibox_main_sub()
 
   implicit none
 
-  ! Create a simplistic state variable
-  type my_state
-    real(kind_phys) :: Temperature
-  end type my_state
-  type(my_state), target :: state_host
+  ! NOTE -- The variables managed by the CCPP are included in the the ccpp_modules.inc file in the "use" statements
 
   integer                           :: i, j
-  real (kind=kind_phys), pointer :: my_co(:)
-  real (kind=kind_phys), pointer :: my_o3(:)
-  character(len=512)     :: errmsg
-  integer :: errflg
 
   ! Create the CCPP required cdata structure
   type(ccpp_t), allocatable, target                      :: cdata(:)
@@ -62,17 +54,8 @@ subroutine ibox_main_sub()
           stop
       end if
 
-   ! use ccpp_fields.inc to call ccpp_field_add for all variables to be exposed to CCPP (this is auto-generated from /src/ccpp/scripts/ccpp_prebuild.py - the script parses tables in the xxx_type_defs.f90)
-
-#  include "ccpp_fields.inc"
-
-     ! Add the fields which are known by the host model that need to be passed to the schemes
-     !----------------------------------------------------
-     ! *** ORDER OF THIS FOLLOWING ccpp_field_add IS IMPORTANT!! ****
-     ! ** CAC NOTE ** This is added after the ccpp field which is added with a value of 0
-     !----------------------------------------------------
-
-     call ccpp_field_add(cdata(i), 'air_temperature', state_host%Temperature, ierr, 'K')
+! use ccpp_fields.inc to call ccpp_field_add for all variables to be exposed to CCPP (this is auto-generated from /src/ccpp/scripts/ccpp_prebuild.py - the script parses tables in the xxx_type_defs.f90)
+#include "ccpp_fields.inc"
 
       ! initialize each column's physics
       call ccpp_physics_init(cdata(i), ierr=ierr)

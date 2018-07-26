@@ -35,7 +35,6 @@ ADD_SUBDIRECTORY(${MICM_SRC} ${CMAKE_BINARY_DIR}/MICM_chemistry)
 
 SET(micm_source_files ibox.F90
             ibox_type_defs.f90
-            ../../MICM_chemistry/src/micm_type_defs.f90
 )
 
 #this should call the custome FindNetCDF.cmake file in /src/cmake/modules and populate the NETCDF_INCLUDES and NETCDF_LIBRARIES variables with the appropriate values
