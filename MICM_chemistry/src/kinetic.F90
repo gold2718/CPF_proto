@@ -142,8 +142,6 @@ contains
     k_rateConst(2) = 1e+4_kind_phys
     k_rateConst(3) = 1.5e7_kind_phys * exp(0 * t_inverse) ! will be used for my_o3
 
-    write(6,*) ' inside kinetic_run T=',T
-
   end subroutine kinetic_run
 
   subroutine kinetic_finalize()
