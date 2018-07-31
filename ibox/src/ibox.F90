@@ -18,11 +18,11 @@ subroutine ibox_main_sub()
                ccpp_physics_finalize,        &
                ccpp_field_add
 
+! NOTE -- The variables managed by the CCPP are included in the the ccpp_modules.inc file in the "use" statements
 #include "ccpp_modules.inc"
 
   implicit none
 
-  ! NOTE -- The variables managed by the CCPP are included in the the ccpp_modules.inc file in the "use" statements
 
   integer                           :: i, j
 
@@ -54,7 +54,7 @@ subroutine ibox_main_sub()
           stop
       end if
 
-! use ccpp_fields.inc to call ccpp_field_add for all variables to be exposed to CCPP (this is auto-generated from /src/ccpp/scripts/ccpp_prebuild.py - the script parses tables in the xxx_type_defs.f90)
+! use ccpp_fields.inc to call ccpp_field_add for all variables to be exposed to CCPP (this is auto-generated from /src/ccpp/scripts/ccpp_prebuild.py - the script parses tables in the ibox_var_defs.f90)
 #include "ccpp_fields.inc"
 
       ! initialize each column's physics
