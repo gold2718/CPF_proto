@@ -75,25 +75,25 @@
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-module kinetic
+module kessler
 
   use machine, only: kind_phys
   implicit none
 
   private
-  public :: kinetic_init 
-  public :: kinetic_run
-  public :: kinetic_finalize
+  public :: kessler_init 
+  public :: kessler_run
+  public :: kessler_finalize
 
 contains
 
-!> \section arg_table_kinetic_init  Argument Table
+!> \section arg_table_kessler_init  Argument Table
 !! | local_name | standard_name                                    | long_name                               | units       | rank | type      | kind      | intent | optional |
 !! |------------|--------------------------------------------------|-----------------------------------------|-------------|------|-----------|-----------|--------|----------|
 !! | errmsg     | error_message                                    | CCPP error message                      | none        |    0 | character | len=512   | out    | F        |
 !! | errflg     | error_flag                                       | CCPP error flag                         | flag        |    0 | integer   |           | out    | F        |
 !!
-  subroutine kinetic_init (errmsg, errflg)
+  subroutine kessler_init (errmsg, errflg)
 
     character(len=512),      intent(out)   :: errmsg
     integer,                 intent(out)   :: errflg
@@ -103,9 +103,9 @@ contains
     errmsg = ''
     errflg = 0
 
-  end subroutine kinetic_init
+  end subroutine kessler_init
 
-!> \section arg_table_kinetic_run  Argument Table
+!> \section arg_table_kessler_run  Argument Table
 !! | local_name | standard_name    | long_name            | units | rank | type      | kind      | intent | optional |
 !! |------------|------------------|----------------------|-------|------|-----------|-----------|--------|----------|
 !! | T          | air_temperature  | Temperature          | K     |    0 | real      | kind_phys | in     | F        |
@@ -113,7 +113,7 @@ contains
 !! | errmsg     | error_message    | CCPP error message   | none  |    0 | character | len=512   | out    | F        |
 !! | errflg     | error_flag       | CCPP error flag      | flag  |    0 | integer   |           | out    | F        |
 !!
-  subroutine kinetic_run  (T, k_rateConst, errmsg, errflg)
+  subroutine kessler_run  (T, k_rateConst, errmsg, errflg)
 
     implicit none
 
@@ -131,7 +131,7 @@ contains
     ! Check for an error, and if found set error flag and error message
     if (T == 0_kind_phys) then
        errflg = 1
-       errmsg = 'kinetic_run: Temperature is zero'
+       errmsg = 'kessler_run: Temperature is zero'
        return
     end if
 
@@ -142,9 +142,9 @@ contains
     k_rateConst(2) = 1e+4_kind_phys
     k_rateConst(3) = 1.5e7_kind_phys * exp(0 * t_inverse) ! will be used for my_o3
 
-  end subroutine kinetic_run
+  end subroutine kessler_run
 
-  subroutine kinetic_finalize()
-  end subroutine kinetic_finalize
+  subroutine kessler_finalize()
+  end subroutine kessler_finalize
 
-end module kinetic
+end module kessler

@@ -12,9 +12,9 @@ set(CMAKE_MACOSX_RPATH 1)
 
 if(POLICY CMP0048)
     cmake_policy(SET CMP0048 NEW)
-    project(micmchem VERSION 1.0.0)
+    project(simple_cam VERSION 1.0.0)
 else(POLICY CMP0048)
-    project(micmchem)
+    project(simple_cam)
     set(PROJECT_VERSION 1.0.0)
     set(PROJECT_VERSION_MAJOR 1)
     set(PROJECT_VERSION_MINOR 0)
@@ -26,8 +26,8 @@ if(POLICY CMP0042)
 endif(POLICY CMP0042)
 
 #------------------------------------------------------------------------------
-set(PACKAGE "micm-chemistry")
-set(AUTHORS  "Cheryl Craig" "Francis Vitt" "Andrew Conley" "Stacy Walters")
+set(PACKAGE "cam_kessler")
+set(AUTHORS  "Cheryl Craig" "Steve Goldhaber" )
 
 #------------------------------------------------------------------------------
 # Enable Fortran
@@ -102,15 +102,13 @@ if (PROJECT STREQUAL "CCPP-FV3")
 else (PROJECT STREQUAL "CCPP-FV3")
   set(SCHEMES
       ./src/machine.F
-      ./src/chem_solve.F90
-      ./src/kinetic.F90
+      ./src/kessler.F90
   )
 endif (PROJECT STREQUAL "CCPP-FV3")
 
 # Set the sources: physics scheme caps
 set(CAPS
-      ./physics/chem_solve_cap.F90
-      ./physics/kinetic_cap.F90
+      ./physics/kessler_cap.F90
   )
 
 if (${CMAKE_Fortran_COMPILER_ID} STREQUAL "GNU")
@@ -151,13 +149,13 @@ INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/ccpp-framework/src)
 
 #------------------------------------------------------------------------------
 
-add_library(micmchem ${SCHEMES} ${CAPS})
+add_library(simple_cam ${SCHEMES} ${CAPS})
 if (PROJECT STREQUAL "CCPP-FV3")
-  target_link_libraries(micmchem LINK_PUBLIC ${LIBS} sp_v2.0.2_d bacio_4 w3nco_d)
+  target_link_libraries(simple_cam LINK_PUBLIC ${LIBS} sp_v2.0.2_d bacio_4 w3nco_d)
 else (PROJECT STREQUAL "CCPP-FV3")
-  target_link_libraries(micmchem LINK_PUBLIC ${LIBS} )
+  target_link_libraries(simple_cam LINK_PUBLIC ${LIBS} )
 endif (PROJECT STREQUAL "CCPP-FV3")
-set_target_properties(micmchem PROPERTIES VERSION ${PROJECT_VERSION}
+set_target_properties(simple_cam PROPERTIES VERSION ${PROJECT_VERSION}
                                      SOVERSION ${PROJECT_VERSION_MAJOR}
                                      COMPILE_FLAGS "${CMAKE_Fortran_FLAGS}"
                                      LINK_FLAGS "${CMAKE_Fortran_FLAGS}")
@@ -165,11 +163,11 @@ set_target_properties(micmchem PROPERTIES VERSION ${PROJECT_VERSION}
 if (${CMAKE_Fortran_COMPILER_ID} STREQUAL "PGI")
 set(CAPOBJS)
 foreach(cap ${CAPS})
-    string(REPLACE "_cap.F90" "_cap.F90.o" capobj "./${CMAKE_FILES_DIRECTORY}/micmchem.dir/${cap}")
+    string(REPLACE "_cap.F90" "_cap.F90.o" capobj "./${CMAKE_FILES_DIRECTORY}/simple_cam.dir/${cap}")
     list(APPEND CAPOBJS ${capobj})
 endforeach(cap)
 
-add_custom_command(TARGET micmchem
+add_custom_command(TARGET simple_cam
                    PRE_LINK
                    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/pgifix.py --cmake ${CAPOBJS}
                    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
@@ -179,15 +177,15 @@ endif (${CMAKE_Fortran_COMPILER_ID} STREQUAL "PGI")
 
 if (PROJECT STREQUAL "CCPP-FV3")
   # Define where to install the library
-  install(TARGETS micmchem
-          EXPORT micmchem-targets
+  install(TARGETS simple_cam
+          EXPORT simple_cam-targets
           ARCHIVE DESTINATION lib
           LIBRARY DESTINATION lib
           RUNTIME DESTINATION lib
   )
   # Export our configuration
-  install(EXPORT micmchem-targets
-          FILE micmchem-config.cmake
+  install(EXPORT simple_cam-targets
+          FILE simple_cam-config.cmake
           DESTINATION lib/cmake
   )
 endif (PROJECT STREQUAL "CCPP-FV3")

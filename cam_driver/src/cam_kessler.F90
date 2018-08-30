@@ -1,4 +1,4 @@
-module ibox_main
+module cam_kessler_main
 
 use machine, only: kind_phys
 
@@ -6,7 +6,7 @@ implicit none
 
 contains
 
-subroutine ibox_main_sub()
+subroutine cam_kessler_main_sub()
 
   ! Add the CCPP specific types and functions
   use :: ccpp_api,                           &
@@ -48,13 +48,13 @@ subroutine ibox_main_sub()
   do i = 1, ncols
 
       ! Use the suite information to setup the run
-      call ccpp_init( '../suites/suite_ibox_test_simple1.xml', cdata(i), ierr)
+      call ccpp_init( '../suites/suite_cam_kessler_test_simple1.xml', cdata(i), ierr)
       if (ierr/=0) then
           write(*,'(a,i0,a)') 'An error occurred in ccpp_init for column ', i, '. Exiting...'
           stop
       end if
 
-! use ccpp_fields.inc to call ccpp_field_add for all variables to be exposed to CCPP (this is auto-generated from /src/ccpp/scripts/ccpp_prebuild.py - the script parses tables in the ibox_var_defs.f90)
+! use ccpp_fields.inc to call ccpp_field_add for all variables to be exposed to CCPP (this is auto-generated from /src/ccpp/scripts/ccpp_prebuild.py - the script parses tables in the cam_var_defs.f90)
 #include "ccpp_fields.inc"
 
       ! initialize each column's physics
@@ -100,15 +100,15 @@ subroutine ibox_main_sub()
       end if
   end do
 
-end subroutine ibox_main_sub
+end subroutine cam_kessler_main_sub
 
-end module ibox_main
+end module cam_kessler_main
 
 !> \brief Main SCM program that calls the main SCM subroutine
 !!
 !! The Doxygen documentation system cannot handle in-body comments in Fortran main programs, so the "main" program was put in the
-!! subroutine \ref ibox_main_sub above.
-program ibox
-  use ibox_main
-  call ibox_main_sub()
-end program ibox
+!! subroutine \ref cam_kessler_main_sub above.
+program cam_kessler
+  use cam_kessler_main
+  call cam_kessler_main_sub()
+end program cam_kessler

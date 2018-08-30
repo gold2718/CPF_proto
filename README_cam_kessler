@@ -1,26 +1,26 @@
 # User's Guide
 
-The MICM code calls CCPP-compliant
+The cam_kessler code calls CCPP-compliant
 physics schemes through the CCPP infrastructure code. As such, it requires the
 CCPP infrastructure code and physics code, both of which are included as git
 submodules within the SCM code. 
 
 ## Obtaining Code
 1. Download a compressed file or clone the source using
-  * `git clone -b cac_devel https://cacraigucar@github.com/cacraigucar/ccpp-ibox.git`
+  * `git clone -b cac_devel https://cacraigucar@github.com/cacraigucar/cam_kessler.git`
   and enter your github password if prompted.
 2. Change directory into the project.
-  * `cd ccpp-ibox`
+  * `cd cam_kessler`
 3. Install the external libraries
   * `manage_externals/checkout_externals`
   and, if asked, enter your github credentials again. (It may ask for this a number of times)
 
 ## Building and Compiling the SCM with CCPP
 1. Run the CCPP prebuild script to generate physics caps and makefile segments.
-  * `./ccpp-framework/scripts/ccpp_prebuild.py --model=ibox`
+  * `./ccpp-framework/scripts/ccpp_prebuild.py --model=cam_kessler`
   Note: add `--debug` to see the full output of the script.
 2. Change directory to the top-level SCM directory.
-  * `cd ibox`
+  * `cd cam_driver`
 3. Run the machine setup script if necessary (the CENTOS script is needed for modeling2). This script loads
 compiler modules (Fortran 2003-compliant), netCDF module, etc. and sets
 compiler environment variables.
@@ -43,5 +43,5 @@ compiler environment variables.
 
 ## Running the SCM with CCPP
 1. Run the job
-  * `./ibox`
+  * `./cam_kessler`
 

@@ -1,5 +1,5 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
-PROJECT(ibox)
+PROJECT(cam_kessler)
 ENABLE_LANGUAGE(Fortran)
 
 include(CMakeForceCompiler)
@@ -10,7 +10,7 @@ SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake/modules)
 SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} $ENV{NETCDF})
 
 SET(CCPP_SRC ${CMAKE_SOURCE_DIR}/../../ccpp-framework)
-SET(MICM_SRC ${CMAKE_SOURCE_DIR}/../../MICM_chemistry)
+SET(SIMPLE_SRC ${CMAKE_SOURCE_DIR}/../../simple)
 
 # Use rpaths on MacOSX
 set(CMAKE_MACOSX_RPATH 1)
@@ -31,10 +31,10 @@ endif()
 ADD_COMPILE_OPTIONS(-O0)
 
 ADD_SUBDIRECTORY(${CCPP_SRC} ${CMAKE_BINARY_DIR}/ccpp-framework)
-ADD_SUBDIRECTORY(${MICM_SRC} ${CMAKE_BINARY_DIR}/MICM_chemistry)
+ADD_SUBDIRECTORY(${SIMPLE_SRC} ${CMAKE_BINARY_DIR}/simple)
 
-SET(micm_source_files ibox.F90
-            ibox_var_defs.f90
+SET(kessler_source_files cam_kessler.F90
+            cam_var_defs.f90
 )
 
 #this should call the custome FindNetCDF.cmake file in /src/cmake/modules and populate the NETCDF_INCLUDES and NETCDF_LIBRARIES variables with the appropriate values
@@ -43,7 +43,7 @@ FIND_PACKAGE(NetCDF)
 
 INCLUDE_DIRECTORIES(${NETCDF_INCLUDES})
 INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/ccpp-framework/src)
-INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/MICM_chemistry)
+INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/simple)
 
 if (${CMAKE_Fortran_COMPILER_ID} MATCHES "GNU")
 #  gfortran
@@ -118,9 +118,9 @@ else(OPENMP)
   message (STATUS "Disable OpenMP support for C/C++/Fortran compiler")
 endif()
 
-ADD_EXECUTABLE(ibox ${micm_source_files})
-TARGET_LINK_LIBRARIES(ibox micmchem ccpp ${NETCDF_LIBRARIES})
-#set_target_properties(ibox PROPERTIES
+ADD_EXECUTABLE(cam_kessler ${kessler_source_files})
+TARGET_LINK_LIBRARIES(cam_kessler simple_cam ccpp ${NETCDF_LIBRARIES})
+#set_target_properties(cam_kessler PROPERTIES
 #                               COMPILE_FLAGS "${CMAKE_Fortran_FLAGS}"
 #                               LINK_FLAGS "${CMAKE_Fortran_FLAGS}")
 

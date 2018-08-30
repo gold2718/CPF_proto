@@ -1,19 +1,19 @@
-!> \file ibox_type_defs.f90
-!!  Contains type definitions for ibox variables and physics-related variables
+!> \file cam_type_defs.f90
+!!  Contains type definitions for cam variables and physics-related variables
 
-module ibox_vardefs
+module cam_vardefs
 
 use machine, only: kind_phys
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
-! The following definition sets up the variables for use within ibox
+! The following definition sets up the variables for use within cam
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 
 ! Filter with CPP for PGI compiler
 #ifndef __PGI
-!> \section arg_table_ibox_vardefs
+!> \section arg_table_cam_vardefs
 !! | local_name             | standard_name               | long_name               | units       | rank | type      |    kind   | intent | optional |
 !! |------------------------|-----------------------------|-------------------------|-------------|------|-----------|-----------|--------|----------|
 !! | my_co(:)               | my_volume_mixing_ratio_co   | volume mixing ratio co  | mole mole-1 |    1 | real      | kind_phys | none   | F        |
@@ -40,4 +40,4 @@ use machine, only: kind_phys
   real(kind_phys)  :: tune_factor
   real, pointer    :: k_rateConst(:)
 
-end module ibox_vardefs
+end module cam_vardefs
