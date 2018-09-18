@@ -23,6 +23,22 @@ use machine, only: kind_phys
 !! | errflg                 | error_flag                  | CCPP error flag         | flag        |    0 | integer   |           | out    | F        |
 !! | tune_factor            | tuning factor for solver    | tuning factor for solver| mole mole-1 |    0 | real      | kind_phys | none   | F        |
 !! | k_rateConst            | k_rate_constants            | k Rate Constants        | none        |    1 | real      | kind_phys | none   | F        |
+!! | ncol       | number_of_columns| number of columns    | none  |    0 | integer   |           | in     | F        |
+!! | pver       | number_of_vert   | number of vert levels| none  |    0 | integer   |           | in     | F        |
+!! | ztodt      | time_step        | time step            | s     |    0 | real      | kind_phys | in     | F        |
+!! | rho        | dry_air_density  | dry air density      | kg/m^3|    2 | real      | kind_phys | in     | F        |
+!! | z          | height           | height               | m     |    2 | real      | kind_phys | in     | F        |
+!! | pk         | exner_function   | exner function       | none  |    2 | real      | kind_phys | in     | F        |
+!! | th         | potential_temp   | potential temp       | K     |    2 | real      | kind_phys | inout  | F        |
+!! | qv         | water_vapor      | water vapor          | gm/gm |    2 | real      | kind_phys | inout  | F        |
+!! | qc         | cld water_vapor  | cld water vapor      | gm/gm |    2 | real      | kind_phys | inout  | F        |
+!! | qr         | rain water_vapor | rain water vapor     | gm/gm |    2 | real      | kind_phys | inout  | F        |
+!! | precl      | precipitation    | precipitation        | m/s   |    1 | real      | kind_phys | out    | F        |
+!! | rair       | gas constant for dry air                         | gas constant for dry air                | J/(kgK)     |    0 | real      | kind_phys | in     | F        |
+!! | cpair      | heat capacity at constant pres                   | heat capacity at constant pres          | J/(kgK)     |    0 | real      | kind_phys | in     | F        |
+!! | latvap     | latent heat of vaporization                      | latent heat of vaporization             | J/kg        |    0 | real      | kind_phys | in     | F        |
+!! | pstd       | reference pressure at sea level                  | reference pressure at sea level         | mb          |    0 | real      | kind_phys | in     | F        |
+!! | rhoh2o     | density of liquid water                          | density of liquid water                 | kg/m^3      |    0 | real      | kind_phys | in     | F        |
 !!
 
 #endif
