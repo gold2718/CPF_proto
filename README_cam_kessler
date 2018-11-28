@@ -3,19 +3,24 @@
 The cam_kessler code calls CCPP-compliant
 physics schemes through the CCPP infrastructure code. As such, it requires the
 CCPP infrastructure code and physics code, both of which are included as git
-submodules within the SCM code. 
+submodules within the SCM code.
 
 ## Obtaining Code
-    
-  git clone -b cac_kessler https://cacraigucar@github.com/cacraigucar/cam_kessler.git
-     -- or --
-  git clone -b cac_kessler_nottested https://cacraigucar@github.com/cacraigucar/cam_kessler.git
 
-  cd cam_kessler
+  git clone -b cac_kessler https://github.com/cacraigucar/CPF_proto.git
+     -- or --
+  git clone -b cac_kessler_nottested https://github.com/cacraigucar/CPF_proto.git
+
+  cd CPF_proto
   manage_externals/checkout_externals
 
-  ccpp-framework/scripts/ccpp_prebuild.py --model=cam_kessler
-  Note: add `--debug` to see the full output of the script.
+  ./ccpp-framework/scripts/ccpp_capgen.py cam_driver/src/cam_ccpp_files.txt   \
+  simple/src/simple_schemes.txt                                               \
+  --sdf-pathlist cam_driver/suites/suite_cam_kessler_test_simple1.xml         \
+  --output-root ~/scratch/kessler --generate-host-cap
+
+  Note: add `--verbose` to see more output of the script (a second --verbose
+  will further increase the output and also enable stack trace on error).
 
   cd cam_driver
   source etc/hobart_setup.sh` (for sh)
@@ -26,4 +31,3 @@ submodules within the SCM code.
 
 1. Run the job
   * `./cam_kessler`
-

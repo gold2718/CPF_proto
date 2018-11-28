@@ -20,15 +20,65 @@ module kessler
 CONTAINS
 
 !> \section arg_table_kessler_init  Argument Table
-!! | local_name | standard_name                                    | long_name                               | units       | rank | type      | kind      | intent | optional |
-!! |------------|--------------------------------------------------|-----------------------------------------|-------------|------|-----------|-----------|--------|----------|
-!! | rd_in      | dry_air_gas_constant                             | gas constant for dry air                | J/K/kg      |    0 | real      | kind_phys | in     | F        |
-!! | cp_in      | specific_heat_of_dry_air                         | heat capacity at constant pres          | J/K/kg      |    0 | real      | kind_phys | in     | F        |
-!! | lv_in      | latent heat of vaporization                      | latent heat of vaporization             | J/kg        |    0 | real      | kind_phys | in     | F        |
-!! | psl_in     | reference pressure at sea level                  | reference pressure at sea level         | mb          |    0 | real      | kind_phys | in     | F        |
-!! | rhoqr_in   | density of liquid water                          | density of liquid water                 | kg/m^3      |    0 | real      | kind_phys | in     | F        |
-!! | errmsg     | error_message                                    | CCPP error message                      | none        |    0 | character | len=512   | out    | F        |
-!! | errflg     | error_flag                                       | CCPP error flag                         | flag        |    0 | integer   |           | out    | F        |
+!! [ rd_in ]
+!!   standard_name = gas_constant_dry_air
+!!   units = J/(kgK)
+!!   dimensions = ()
+!!   type = real
+!!   kind = kind_phys
+!!   intent = in
+!!   optional = F
+!! [ cp_in ]
+!!   standard_name = specific_heat_of_dry_air_at_constant_pressure
+!!   units = J/(kgK)
+!!   dimensions = ()
+!!   type = real
+!!   kind = kind_phys
+!!   intent = in
+!!   optional = F
+!! [ lv_in ]
+!!   standard_name = latent_heat_of_vaporization_of_water_at_0c
+!!   long_name = latent heat of vaporization of water at 0C
+!!   units = J/kg
+!!   dimensions = ()
+!!   type = real
+!!   kind = kind_phys
+!!   intent = in
+!!   optional = F
+!! [ psl_in ]
+!!   standard_name = reference_pressure_at_sea_level
+!!   long_name = reference pressure at sea level
+!!   units = mb
+!!   dimensions = ()
+!!   type = real
+!!   kind = kind_phys
+!!   intent = in
+!!   optional = F
+!! [ rhoqr_in ]
+!!   standard_name = density_of_liquid_water_at_0c
+!!   long_name = density of liquid water at 0C
+!!   units = kg/m^3
+!!   dimensions = ()
+!!   type = real
+!!   kind = kind_phys
+!!   intent = in
+!!   optional = F
+!! [ errmsg ]
+!!   standard_name = ccpp_error_message
+!!   long_name = Error message for error handling in CCPP
+!!   units = 1
+!!   type = character | kind = len=512
+!!   dimensions = ()
+!!   intent = out
+!!   optional = F
+!! [ errflg ]
+!!   standard_name = ccpp_error_flag
+!!   long_name = Error flag for error handling in CCPP
+!!   units = flag
+!!   type = integer
+!!   dimensions = ()
+!!   intent = out
+!!   optional = F
 !!
   subroutine kessler_init(rd_in, cp_in, lv_in, psl_in, rhoqr_in, errmsg, errflg)
     ! Set physical constants to be consistent with calling model
@@ -40,7 +90,7 @@ CONTAINS
 
     character(len=512),      intent(out)   :: errmsg
     integer,                 intent(out)   :: errflg
-    
+
     errmsg = ''
     errflg = 0
 
@@ -49,7 +99,7 @@ CONTAINS
     lv    = lv_in
     psl   = psl_in
     rhoqr = rhoqr_in
-    
+
   end subroutine kessler_init
 
   !-----------------------------------------------------------------------
@@ -109,31 +159,129 @@ CONTAINS
   !
   !    Klemp, J. B., W. C. Skamarock, W. C., and S.-H. Park, 2015:
   !    Idealized Global Nonhydrostatic Atmospheric Test Cases on a Reduced
-  !    Radius Sphere. Journal of Advances in Modeling Earth Systems. 
+  !    Radius Sphere. Journal of Advances in Modeling Earth Systems.
   !    doi:10.1002/2015MS000435
   !
   !=======================================================================
 
+!> \section arg_table_kessler_finalize  Argument Table
+!!
   subroutine kessler_finalize()
   end subroutine kessler_finalize
 
-
 !> \section arg_table_kessler_run  Argument Table
-!! | local_name | standard_name                                                | long_name                               | units       | rank | type      | kind      | intent | optional |
-!! |------------|--------------------------------------------------------------|-----------------------------------------|-------------|------|-----------|-----------|--------|----------|
-!! | ncol       | horizontal_extent                                            | number of columns                       | none        |    0 | integer   |           | in     | F        |
-!! | nz         | maximum_vertical_extent                                      | number of vert levels                   | none        |    0 | integer   |           | in     | F        |
-!! | dt         | physics_time_step                                            | time step                               | s           |    0 | real      | kind_phys | in     | F        |
-!! | rho        | dry_air_density                                              | dry air density                         | kg/m^3      |    2 | real      | kind_phys | in     | F        |
-!! | z          | height                                                       | height                                  | m           |    2 | real      | kind_phys | in     | F        |
-!! | pk         | exner_function                                               | exner function                          | none        |    2 | real      | kind_phys | in     | F        |
-!! | theta      | air_potential_temperature                                    | air_potential_temperature               | K           |    2 | real      | kind_phys | in     | F        |
-!! | qv         | mass_fraction_of_water_in_air                                | mass_fraction_of_water_in_air           | kg kg-1     |    2 | real      | kind_phys | in     | F        |
-!! | qc         | mass_fraction_of_cloud_liquid_water_in_air                   | cloud_liquid_water_in_air               | kg kg-1     |    2 | real      | kind_phys | in     | F        |
-!! | qr         | mass_fraction_of_rain_in_air                                 | rain in air                             | kg kg-1     |    2 | real      | kind_phys | in     | F        |
-!! | precl      | precipitation                                                | precipitation                           | m/s         |    1 | real      | kind_phys | in     | F        |
-!! | errmsg     | error_message                                                | CCPP error message                      | none        |    0 | character | len=512   | out    | F        |
-!! | errflg     | error_flag                                                   | CCPP error flag                         | flag        |    0 | integer   |           | out    | F        |
+!! [ ncol ]
+!!   standard_name = horizontal_loop_extent
+!!   long_name = number of columns
+!!   units = 1
+!!   dimensions = ()
+!!   type = integer
+!!   intent = in
+!!   optional = F
+!! [ nz ]
+!!   standard_name = vertical_layer_dimension
+!!   long_name = number of vertical levels
+!!   units = 1
+!!   dimensions = ()
+!!   type = integer
+!!   intent = in
+!!   optional = F
+!! [ dt ]
+!!   standard_name = time_step_for_physics
+!!   long_name = time step
+!!   units = s
+!!   dimensions = ()
+!!   type = real
+!!   kind = kind_phys
+!!   intent = in
+!!   optional = F
+!! [ rho ]
+!!   standard_name = dry_air_density
+!!   long_name = dry air density
+!!   units = kg/m^3
+!!   dimensions = (horizontal_loop_extent, vertical_layer_dimension)
+!!   type = real
+!!   kind = kind_phys
+!!   intent = in
+!!   optional = F
+!! [ z ]
+!!   standard_name = geopotential_height_above_surface_at_midpoints
+!!   long_name = geopotential height
+!!   units = m
+!!   dimensions = (horizontal_loop_extent, vertical_layer_dimension)
+!!   type = real
+!!   kind = kind_phys
+!!   intent = in
+!!   optional = F
+!! [ pk ]
+!!   standard_name = inverse_exner_function_wrt_surface_pressure
+!!   long_name = inverse exner function w.r.t. surface pressure, (ps/p)^(R/cp)
+!!   units = 1
+!!   dimensions = (horizontal_loop_extent, vertical_layer_dimension)
+!!   type = real
+!!   kind = kind_phys
+!!   intent = in
+!!   optional = F
+!! [ theta ]
+!!   standard_name = potential_temperature
+!!   long_name = potential temperature
+!!   units = K
+!!   dimensions = (horizontal_loop_extent, vertical_layer_dimension)
+!!   type = real
+!!   kind = kind_phys
+!!   intent = inout
+!!   optional = F
+!! [ qv ]
+!!   standard_name = water_vapor_specific_humidity
+!!   long_name = water vapor
+!!   units = kg kg-1
+!!   dimensions = (horizontal_loop_extent, vertical_layer_dimension)
+!!   type = real
+!!   kind = kind_phys
+!!   intent = inout
+!!   optional = F
+!! [ qc ]
+!!   standard_name = cloud_liquid_water_mixing_ratio
+!!   units = kg kg-1
+!!   dimensions = (horizontal_loop_extent, vertical_layer_dimension)
+!!   type = real
+!!   kind = kind_phys
+!!   intent = inout
+!!   optional = F
+!! [ qr ]
+!!   standard_name = rain_water_mixing_ratio
+!!   units = gm/gm
+!!   dimensions = (horizontal_loop_extent, vertical_layer_dimension)
+!!   type = real
+!!   kind = kind_phys
+!!   intent = inout
+!!   optional = F
+!! [ precl ]
+!!   standard_name = precipitation
+!!   long_name = precipitation
+!!   units = m/s
+!!   dimensions = (horizontal_loop_extent)
+!!   type = real
+!!   kind = kind_phys
+!!   intent = out
+!!   optional = F
+!! [ errmsg ]
+!!   standard_name = ccpp_error_message
+!!   long_name = Error message for error handling in CCPP
+!!   units = 1
+!!   dimensions = ()
+!!   type = character
+!!   kind = len=512
+!!   intent = out
+!!   optional = F
+!! [ errflg ]
+!!   standard_name = ccpp_error_flag
+!!   long_name = Error flag for error handling in CCPP
+!!   units = flag
+!!   dimensions = ()
+!!   type = integer
+!!   intent = out
+!!   optional = F
 !!
   subroutine kessler_run(ncol, nz, dt, rho, z, pk, theta, qv, qc, qr, precl, errmsg, errflg)
 
