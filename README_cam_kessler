@@ -6,44 +6,24 @@ CCPP infrastructure code and physics code, both of which are included as git
 submodules within the SCM code. 
 
 ## Obtaining Code
-1. Download a compressed file or clone the source using
-  * `git clone -b cac_devel https://cacraigucar@github.com/cacraigucar/cam_kessler.git`
-  and enter your github password if prompted.
-2. Change directory into the project.
-  * `cd cam_kessler`
-3. Install the external libraries
-  * `manage_externals/checkout_externals`
-  and, if asked, enter your github credentials again. (It may ask for this a number of times)
+    
+  git clone -b cac_kessler https://cacraigucar@github.com/cacraigucar/cam_kessler.git
+     -- or --
+  git clone -b cac_kessler_nottested https://cacraigucar@github.com/cacraigucar/cam_kessler.git
 
-## Building and Compiling the SCM with CCPP
-1. Run the CCPP prebuild script to generate physics caps and makefile segments.
-  * `./ccpp-framework/scripts/ccpp_prebuild.py --model=cam_kessler`
+  cd cam_kessler
+  manage_externals/checkout_externals
+
+  ccpp-framework/scripts/ccpp_prebuild.py --model=cam_kessler
   Note: add `--debug` to see the full output of the script.
-2. Change directory to the top-level SCM directory.
-  * `cd cam_driver`
-3. Run the machine setup script if necessary (the CENTOS script is needed for modeling2). This script loads
-compiler modules (Fortran 2003-compliant), netCDF module, etc. and sets
-compiler environment variables.
-  * `source etc/hobart_setup.sh` (for sh)
-  * `source etc/Theia_setup_intel.csh` (for csh) or `. etc/Theia_setup_intel.sh` (for bash)
-  * `source etc/Theia_setup_pgi.csh` (for csh) or `. etc/Theia_setup_pgi.sh` (for bash)
-  * `source etc/Cheyenne_setup_intel.csh` (for csh) or `. etc/Cheyenne_setup_intel.sh` (for bash)
-  * `source etc/Cheyenne_setup_pgi.csh` (for csh) or `. etc/Cheyenne_setup_pgi.sh` (for bash)
-  * `source etc/UBUNTU_setup.csh` (for csh) or `. etc/UBUNTU_setup.sh` (for bash) if following the instructions in doc/README_UBUNTU.txt
-  * `source etc/CENTOS_setup.csh` (for csh) or `. etc/CENTOS_setup.sh` (for bash) if following the instructions in doc/README_CENTOS.txt
-  * `source etc/MACOSX_setup.csh` (for csh) or `. etc/MACOSX_setup.sh` (for bash) if following the instructions in doc/README_MACOSX.txt
-4. Make a build directory and change into it.
-  * `mkdir bin && cd bin`
-5. Invoke cmake on the source code to build.
-  * `cmake ../src` (without threading/OpenMP)
-  * `cmake -DOPENMP=1 ../src` (with threading/OpenMP)
-  (may add -DCMAKE_BUILD_TYPE=Debug for debugging)
 
-  For extensive debugging output, add `-DCMAKE_BUILD_TYPE=Debug` to the `cmake` command.
-6. Compile. Add `VERBOSE=1` to obtain more information on the build process.
-  * `make`
+  cd cam_driver
+  source etc/hobart_setup.sh` (for sh)
+  mkdir bin; cd bin
+  cmake ../src ---  (without threading/OpenMP)
+                    (may add -DCMAKE_BUILD_TYPE=Debug for debugging)
+  make
 
-## Running the SCM with CCPP
 1. Run the job
   * `./cam_kessler`
 
