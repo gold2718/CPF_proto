@@ -103,12 +103,14 @@ else (PROJECT STREQUAL "CCPP-FV3")
   set(SCHEMES
       ./src/machine.F
       ./src/kessler.F90
+      ./src/kessler_update.F90
   )
 endif (PROJECT STREQUAL "CCPP-FV3")
 
 # Set the sources: physics scheme caps
 set(CAPS
       ./physics/kessler_cap.F90
+      ./physics/kessler_update_cap.F90
   )
 
 if (${CMAKE_Fortran_COMPILER_ID} STREQUAL "GNU")

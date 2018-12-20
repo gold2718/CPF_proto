@@ -3,6 +3,7 @@
   <group name="time_vary">
     <subcycle loop="1">
       <scheme>kessler</scheme>
+      <scheme>kessler_update</scheme>
     </subcycle>
   </group>
   <finalize>kessler</finalize>

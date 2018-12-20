@@ -24,6 +24,7 @@ submodules within the SCM code.
 3. Run the machine setup script if necessary (the CENTOS script is needed for modeling2). This script loads
 compiler modules (Fortran 2003-compliant), netCDF module, etc. and sets
 compiler environment variables.
+  * `source etc/hobart_setup.sh` (for sh)
   * `source etc/Theia_setup_intel.csh` (for csh) or `. etc/Theia_setup_intel.sh` (for bash)
   * `source etc/Theia_setup_pgi.csh` (for csh) or `. etc/Theia_setup_pgi.sh` (for bash)
   * `source etc/Cheyenne_setup_intel.csh` (for csh) or `. etc/Cheyenne_setup_intel.sh` (for bash)
@@ -36,6 +37,7 @@ compiler environment variables.
 5. Invoke cmake on the source code to build.
   * `cmake ../src` (without threading/OpenMP)
   * `cmake -DOPENMP=1 ../src` (with threading/OpenMP)
+  (may add -DCMAKE_BUILD_TYPE=Debug for debugging)
 
   For extensive debugging output, add `-DCMAKE_BUILD_TYPE=Debug` to the `cmake` command.
 6. Compile. Add `VERBOSE=1` to obtain more information on the build process.

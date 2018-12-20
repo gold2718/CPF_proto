@@ -23,22 +23,33 @@ use machine, only: kind_phys
 !! | errflg                 | error_flag                  | CCPP error flag         | flag        |    0 | integer   |           | out    | F        |
 !! | tune_factor            | tuning factor for solver    | tuning factor for solver| mole mole-1 |    0 | real      | kind_phys | none   | F        |
 !! | k_rateConst            | k_rate_constants            | k Rate Constants        | none        |    1 | real      | kind_phys | none   | F        |
-!! | ncol       | number_of_columns| number of columns    | none  |    0 | integer   |           | in     | F        |
-!! | pver       | number_of_vert   | number of vert levels| none  |    0 | integer   |           | in     | F        |
-!! | ztodt      | time_step        | time step            | s     |    0 | real      | kind_phys | in     | F        |
 !! | rho        | dry_air_density  | dry air density      | kg/m^3|    2 | real      | kind_phys | in     | F        |
 !! | z          | height           | height               | m     |    2 | real      | kind_phys | in     | F        |
 !! | pk         | exner_function   | exner function       | none  |    2 | real      | kind_phys | in     | F        |
-!! | th         | potential_temp   | potential temp       | K     |    2 | real      | kind_phys | inout  | F        |
-!! | qv         | water_vapor      | water vapor          | gm/gm |    2 | real      | kind_phys | inout  | F        |
-!! | qc         | cld water_vapor  | cld water vapor      | gm/gm |    2 | real      | kind_phys | inout  | F        |
-!! | qr         | rain water_vapor | rain water vapor     | gm/gm |    2 | real      | kind_phys | inout  | F        |
-!! | precl      | precipitation    | precipitation        | m/s   |    1 | real      | kind_phys | out    | F        |
-!! | rair       | gas constant for dry air                         | gas constant for dry air                | J/(kgK)     |    0 | real      | kind_phys | in     | F        |
-!! | cpair      | heat capacity at constant pres                   | heat capacity at constant pres          | J/(kgK)     |    0 | real      | kind_phys | in     | F        |
 !! | latvap     | latent heat of vaporization                      | latent heat of vaporization             | J/kg        |    0 | real      | kind_phys | in     | F        |
 !! | pstd       | reference pressure at sea level                  | reference pressure at sea level         | mb          |    0 | real      | kind_phys | in     | F        |
 !! | rhoh2o     | density of liquid water                          | density of liquid water                 | kg/m^3      |    0 | real      | kind_phys | in     | F        |
+!! | pcols      | maximum_horizontal_extent                        | number of columns                       | none        |    0 | integer   |           | in     | F        |
+!! | pver       | maximum_vertical_extent                                      | maximum_vertical_exten      | none        |    0 | integer   |           | in     | F        |
+!! | ncol       | horizontal_extent                                            | number of columns           | none        |    0 | integer   |           | in     | F        |
+!! | pmid       | pressure_at_mid_level                                        | pressure_at_mid_level                   | hPa         |    2 | real      | kind_phys | in     | F        |
+!! | rair       | dry_air_gas_constant                                         | dry_air_gas_constant                    | J/K/kg      |    0 | real      | kind_phys | in     | F        |
+!! | cpair      | specific_heat_of_dry_air                                     | specific_heat_of_dry_air                | J/K/kg      |    0 | real      | kind_phys | in     | F        |
+!! | ztodt      | physics_time_step                                            | physics_time_step                       | s           |    0 | real      | kind_phys | in     | F        |
+!! | th         | air_potential_temperature                                    | air_potential_temperature               | K           |    2 | real      | kind_phys | in     | F        |
+!! | qv         | mass_fraction_of_water_in_air                                | mass_fraction_of_water_in_air           | kg kg-1     |    2 | real      | kind_phys | in     | F        |
+!! | qc         | mass_fraction_of_cloud_liquid_water_in_air                   | cloud_liquid_water_in_air               | kg kg-1     |    2 | real      | kind_phys | in     | F        |
+!! | qr         | mass_fraction_of_rain_in_air                                 | rain in air                             | kg kg-1     |    2 | real      | kind_phys | in     | F        |
+!! | precl      | precipitation                                                | precipitation                           | m/s         |    1 | real      | kind_phys | inout  | F        |
+!! | t_prev     | air_temperature_prev                                         | previous air temperature                | K           |    2 | real      | kind_phys | inout  | F        |
+!! | qv_prev    | mass_fraction_of_water_in_air_prev                           | previous water in air                   | kg kg-1     |    2 | real      | kind_phys | inout  | F        |
+!! | qc_prev    | mass_fraction_of_cloud_liquid_water_in_air_prev              | previous cloud_liquid_water_in_air      | kg kg-1     |    2 | real      | kind_phys | inout  | F        |
+!! | qr_prev    | mass_fraction_of_rain_in_air_prev                            | previous rain in air                    | kg kg-1     |    2 | real      | kind_phys | inout  | F        |
+!! | precl_prev | precipitation_prev                                           | previous precipitation                  | m/s         |    1 | real      | kind_phys | inout  | F        |
+!! | ttend_t    | total_tendency_of_air_temperature                            | total_tendency_of_air_temperature       | K           |    2 | real      | kind_phys | inout  | F        |
+!! | ttend_qv   | total_tendency_of_mass_fraction_of_water_in_air              | total tendency of_water in air          | kg kg-1     |    2 | real      | kind_phys | inout  | F        |
+!! | ttend_qc   | total_tendency_of_mass_fraction_of_cloud_liquid_water_in_air | total tendency of_water in air          | kg kg-1     |    2 | real      | kind_phys | inout  | F        |
+!! | ttend_qr   | total_tendency_of_mass_fraction_of_rain_in_air               | total tendency of rain in air           | kg kg-1     |    2 | real      | kind_phys | inout  | F        |
 !!
 
 #endif

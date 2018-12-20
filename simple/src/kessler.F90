@@ -22,8 +22,8 @@ CONTAINS
 !> \section arg_table_kessler_init  Argument Table
 !! | local_name | standard_name                                    | long_name                               | units       | rank | type      | kind      | intent | optional |
 !! |------------|--------------------------------------------------|-----------------------------------------|-------------|------|-----------|-----------|--------|----------|
-!! | rd_in      | gas constant for dry air                         | gas constant for dry air                | J/(kgK)     |    0 | real      | kind_phys | in     | F        |
-!! | cp_in      | heat capacity at constant pres                   | heat capacity at constant pres          | J/(kgK)     |    0 | real      | kind_phys | in     | F        |
+!! | rd_in      | dry_air_gas_constant                             | gas constant for dry air                | J/K/kg      |    0 | real      | kind_phys | in     | F        |
+!! | cp_in      | specific_heat_of_dry_air                         | heat capacity at constant pres          | J/K/kg      |    0 | real      | kind_phys | in     | F        |
 !! | lv_in      | latent heat of vaporization                      | latent heat of vaporization             | J/kg        |    0 | real      | kind_phys | in     | F        |
 !! | psl_in     | reference pressure at sea level                  | reference pressure at sea level         | mb          |    0 | real      | kind_phys | in     | F        |
 !! | rhoqr_in   | density of liquid water                          | density of liquid water                 | kg/m^3      |    0 | real      | kind_phys | in     | F        |
@@ -119,21 +119,21 @@ CONTAINS
 
 
 !> \section arg_table_kessler_run  Argument Table
-!! | local_name | standard_name    | long_name            | units | rank | type      | kind      | intent | optional |
-!! |------------|------------------|----------------------|-------|------|-----------|-----------|--------|----------|
-!! | ncol       | number_of_columns| number of columns    | none  |    0 | integer   |           | in     | F        |
-!! | nz         | number_of_vert   | number of vert levels| none  |    0 | integer   |           | in     | F        |
-!! | dt         | time_step        | time step            | s     |    0 | real      | kind_phys | in     | F        |
-!! | rho        | dry_air_density  | dry air density      | kg/m^3|    2 | real      | kind_phys | in     | F        |
-!! | z          | height           | height               | m     |    2 | real      | kind_phys | in     | F        |
-!! | pk         | exner_function   | exner function       | none  |    2 | real      | kind_phys | in     | F        |
-!! | theta      | potential_temp   | potential temp       | K     |    2 | real      | kind_phys | inout  | F        |
-!! | qv         | water_vapor      | water vapor          | gm/gm |    2 | real      | kind_phys | inout  | F        |
-!! | qc         | cld water_vapor  | cld water vapor      | gm/gm |    2 | real      | kind_phys | inout  | F        |
-!! | qr         | rain water_vapor | rain water vapor     | gm/gm |    2 | real      | kind_phys | inout  | F        |
-!! | precl      | precipitation    | precipitation        | m/s   |    1 | real      | kind_phys | out    | F        |
-!! | errmsg     | error_message    | CCPP error message   | none  |    0 | character | len=512   | out    | F        |
-!! | errflg     | error_flag       | CCPP error flag      | flag  |    0 | integer   |           | out    | F        |
+!! | local_name | standard_name                                                | long_name                               | units       | rank | type      | kind      | intent | optional |
+!! |------------|--------------------------------------------------------------|-----------------------------------------|-------------|------|-----------|-----------|--------|----------|
+!! | ncol       | horizontal_extent                                            | number of columns                       | none        |    0 | integer   |           | in     | F        |
+!! | nz         | maximum_vertical_extent                                      | number of vert levels                   | none        |    0 | integer   |           | in     | F        |
+!! | dt         | physics_time_step                                            | time step                               | s           |    0 | real      | kind_phys | in     | F        |
+!! | rho        | dry_air_density                                              | dry air density                         | kg/m^3      |    2 | real      | kind_phys | in     | F        |
+!! | z          | height                                                       | height                                  | m           |    2 | real      | kind_phys | in     | F        |
+!! | pk         | exner_function                                               | exner function                          | none        |    2 | real      | kind_phys | in     | F        |
+!! | theta      | air_potential_temperature                                    | air_potential_temperature               | K           |    2 | real      | kind_phys | in     | F        |
+!! | qv         | mass_fraction_of_water_in_air                                | mass_fraction_of_water_in_air           | kg kg-1     |    2 | real      | kind_phys | in     | F        |
+!! | qc         | mass_fraction_of_cloud_liquid_water_in_air                   | cloud_liquid_water_in_air               | kg kg-1     |    2 | real      | kind_phys | in     | F        |
+!! | qr         | mass_fraction_of_rain_in_air                                 | rain in air                             | kg kg-1     |    2 | real      | kind_phys | in     | F        |
+!! | precl      | precipitation                                                | precipitation                           | m/s         |    1 | real      | kind_phys | in     | F        |
+!! | errmsg     | error_message                                                | CCPP error message                      | none        |    0 | character | len=512   | out    | F        |
+!! | errflg     | error_flag                                                   | CCPP error flag                         | flag        |    0 | integer   |           | out    | F        |
 !!
   subroutine kessler_run(ncol, nz, dt, rho, z, pk, theta, qv, qc, qr, precl, errmsg, errflg)
 

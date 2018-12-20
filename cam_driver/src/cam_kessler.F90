@@ -45,6 +45,15 @@ subroutine cam_kessler_main_sub()
   real(kind_phys),allocatable     :: qr(:,:)   ! Rain water
   real(kind_phys),allocatable     :: z(:,:)    ! height
   real(kind_phys),allocatable     :: precl(:)
+  real(kind_phys),allocatable     :: precl_prev(:)
+  real(kind_phys),allocatable     :: qv_prev(:,:)   ! Water vapor
+  real(kind_phys),allocatable     :: qc_prev(:,:)   ! Cloud water
+  real(kind_phys),allocatable     :: qr_prev(:,:)   ! Rain water
+  real(kind_phys),allocatable     :: t_prev(:,:)   ! potential temperature
+  real(kind_phys),allocatable     :: ttend_qc(:,:)
+  real(kind_phys),allocatable     :: ttend_qv(:,:)
+  real(kind_phys),allocatable     :: ttend_qr(:,:)
+  real(kind_phys),allocatable     :: ttend_t(:,:)
 
   integer  :: istep, ncol, pver_in, nwrite, nz
   character(len=20) :: string
@@ -72,7 +81,18 @@ subroutine cam_kessler_main_sub()
   allocate(qv(pcols,pver))
   allocate(qc(pcols,pver))
   allocate(qr(pcols,pver))
+
+! These shouldn't need to be added at the host model, but I put them into cam_var_defs because couldn't get kessler_var_defs setup properly -- CAC
   allocate(precl(pcols))
+  allocate(precl_prev(pcols))
+  allocate(qv_prev(pcols,pver))
+  allocate(qc_prev(pcols,pver))
+  allocate(qr_prev(pcols,pver))
+  allocate(t_prev(pcols,pver))
+  allocate(ttend_qc(pcols,pver))
+  allocate(ttend_qr(pcols,pver))
+  allocate(ttend_qv(pcols,pver))
+  allocate(ttend_t(pcols,pver))
 
   do i = 1, ncols
 
