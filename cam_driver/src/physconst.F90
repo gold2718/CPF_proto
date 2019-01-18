@@ -8,7 +8,6 @@ MODULE physconst
    !----------------------------------------------------------------------------
    ! physical constants (all data public)
    !----------------------------------------------------------------------------
-   public
 
    real(R8),parameter :: PI        = 3.14159265358979323846_R8 ! pi
    real(R8),parameter :: AVOGADRO  = 6.02214e26_R8             ! Avogadro's number ~ molecules/kmole

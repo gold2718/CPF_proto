@@ -103,15 +103,19 @@ else (PROJECT STREQUAL "CCPP-FV3")
   set(SCHEMES
       ./src/machine.F
       ./src/kessler.F90
-      ./src/kessler_update.F90
+      ./src/converters.F90
+#      ./src/kessler_update.F90
   )
 endif (PROJECT STREQUAL "CCPP-FV3")
 
 # Set the sources: physics scheme caps
-set(CAPS
-      ./physics/kessler_cap.F90
-      ./physics/kessler_update_cap.F90
-  )
+#set(CAPS
+#      ./physics/kessler_cap.F90
+#      ./physics/kessler_update_cap.F90
+#  )
+# Read the list of files from capfiles.txt and set to CAPS
+file(STRINGS ${OUTPUT_ROOT}/capfiles.txt CAPS)
+  message ("OUTPUT_ROOT=" ${OUTPUT_ROOT})
 
 if (${CMAKE_Fortran_COMPILER_ID} STREQUAL "GNU")
   set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -ffree-line-length-none")

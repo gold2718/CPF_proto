@@ -8,6 +8,8 @@ contains
 
 subroutine cam_kessler_main_sub()
 
+  use ppgrid, only: pcols, pver, pverp
+
   ! Add the CCPP specific types and functions
   use :: ccpp_api,                           &
          only: ccpp_t,                       &
@@ -35,7 +37,7 @@ subroutine cam_kessler_main_sub()
   integer ,parameter :: ntimes=11
 
   real(kind_phys) :: rair, cpair, latvap, pstd, rhoh2o, ztodt, dt
-  integer :: pcols, pver
+  integer :: icols, iver
 
   real(kind_phys),allocatable     :: rho(:,:)  ! Dry air density
   real(kind_phys),allocatable     :: pk(:,:)   ! exner func.
@@ -57,6 +59,8 @@ subroutine cam_kessler_main_sub()
 
   integer  :: istep, ncol, pver_in, nwrite, nz
   character(len=20) :: string
+  character(len=512) :: errmsg
+  integer :: errflg
 
   ! Allocate the host variables
   allocate(k_rateConst(3))
@@ -71,7 +75,7 @@ subroutine cam_kessler_main_sub()
   my_o3(:) = 1e-6_kind_phys
 
   open(unit=50, file='../src/fort.50')
-  read(50, fmt='(2i4)') pcols, pver
+  read(50, fmt='(2i4)') icols, iver
   read(50, fmt='(5f22.13)') rair, cpair, latvap, pstd, rhoh2o
 
   allocate(rho(pcols,pver))

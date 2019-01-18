@@ -14,19 +14,19 @@ submodules within the SCM code.
   cd CPF_proto
   manage_externals/checkout_externals
 
-  ./ccpp-framework/scripts/ccpp_capgen.py cam_driver/src/cam_ccpp_files.txt   \
+  ./ccpp-framework/scripts/ccpp_capgen.py cam_driver/src/cam7_ccpp_files.txt   \
   simple/src/simple_schemes.txt                                               \
   --sdf-pathlist cam_driver/suites/suite_cam_kessler_test_simple1.xml         \
-  --output-root ~/scratch/kessler --generate-host-cap
+  --output-root scratch/kessler --generate-host-cap
 
   Note: add `--verbose` to see more output of the script (a second --verbose
   will further increase the output and also enable stack trace on error).
 
   cd cam_driver
-  source etc/hobart_setup.sh` (for sh)
+  source etc/hobart_setup.sh  (for sh)
   mkdir bin; cd bin
-  cmake ../src ---  (without threading/OpenMP)
-                    (may add -DCMAKE_BUILD_TYPE=Debug for debugging)
+  cmake -DOUTPUT_ROOT=../scratch/kessler ../src     ---  (without threading/OpenMP)
+                         (may add -DCMAKE_BUILD_TYPE=Debug for debugging)
   make
 
 1. Run the job

@@ -23,13 +23,13 @@ module state_converters
   real(kind_phys) :: rhoqr = unset ! density of liquid water, kg/m^3
 
   ! Private interfaces
-  private :: save_set ! Set constants checking for consistency
+  private :: safe_set ! Set constants checking for consistency
 
 CONTAINS
 
   subroutine safe_set(var, set_val, var_name, errmsg, errflg)
     ! Dummy arguments
-    real(kind_phys),  intent(in)  :: var     ! variable to set
+    real(kind_phys),  intent(out)  :: var     ! variable to set
     real(kind_phys),  intent(in)  :: set_val ! value to set
     character(len=*), intent(in)  :: var_name
     character(len=*), intent(out) :: errmsg
@@ -110,9 +110,9 @@ CONTAINS
     ! Dummy arguments
     integer,          intent(in)  :: ncol       ! Number of columns
     integer,          intent(in)  :: nz         ! Number of vertical levels
-    real(r8),         intent(in)  :: temp(:,:)  ! temperature (K)
-    real(r8),         intent(in)  :: exner(:,:) ! inverse exner function
-    real(r8),         intent(out) :: theta(:,:) ! potential temperature (K)
+    real(kind_phys),         intent(in)  :: temp(:,:)  ! temperature (K)
+    real(kind_phys),         intent(in)  :: exner(:,:) ! inverse exner function
+    real(kind_phys),         intent(out) :: theta(:,:) ! potential temperature (K)
     character(len=*), intent(out) :: errmsg
     integer,          intent(out) :: errflg
     ! Local variable
@@ -177,13 +177,13 @@ CONTAINS
 !!   dimensions = ()
 !!   intent = out
 !!
-  subroutine potential_temp_to_temp_run(ncol, nz, theta, exner, temp)
+  subroutine potential_temp_to_temp_run(ncol, nz, theta, exner, temp, errmsg, errflg)
     ! Dummy arguments
     integer,          intent(in)  :: ncol       ! Number of columns
     integer,          intent(in)  :: nz         ! Number of vertical levels
-    real(r8),         intent(in)  :: theta(:,:) ! potential temperature (K)
-    real(r8),         intent(in)  :: exner(:,:) ! inverse exner function
-    real(r8),         intent(out) :: temp(:,:)  ! temperature (K)
+    real(kind_phys),         intent(in)  :: theta(:,:) ! potential temperature (K)
+    real(kind_phys),         intent(in)  :: exner(:,:) ! inverse exner function
+    real(kind_phys),         intent(out) :: temp(:,:)  ! temperature (K)
     character(len=*), intent(out) :: errmsg
     integer,          intent(out) :: errflg
     ! Local variable
@@ -194,7 +194,7 @@ CONTAINS
     end do
     errflg = 0
     errmsg = ''
-  end subroutine temp_to_potential_temp_run
+  end subroutine potential_temp_to_temp_run
 
 !> \section arg_table_pres_to_density_dry_init  Argument Table
 !! [ cpair ]
@@ -234,11 +234,11 @@ CONTAINS
     integer,          intent(out) :: errflg
 
     call safe_set(cp, cpair, 'cpair', errmsg, errflg)
-    if (errmsg /= 0) then
+    if (errflg /= 0) then
       errmsg = 'pres_to_density_dry_init: '//trim(errmsg)
     else
       call safe_set(rd, rair, 'rair', errmsg, errflg)
-      if (errmsg /= 0) then
+      if (errflg /= 0) then
         errmsg = 'pres_to_density_dry_init: '//trim(errmsg)
       end if
     end if
@@ -270,6 +270,13 @@ CONTAINS
 !!   units = Pa
 !!   dimensions = (horizontal_loop_extent, vertical_layer_dimension)
 !!   intent = in
+!! [ temp ]
+!!   standard_name = temperature
+!!   state_variable = true
+!!   units = K
+!!   type = real | kind = kind_phys
+!!   dimensions = (horizontal_loop_extent, vertical_layer_dimension)
+!!   intent = in
 !! [ rho ]
 !!    standard_name = dry_air_density
 !!    long_name = dry air density
@@ -294,16 +301,20 @@ CONTAINS
 !!    intent = out
 !!    optional = F
 !!
-  subroutine pres_to_density_dry_run(ncol, nz, pmiddry, rho, errmsg, errflg)
+  subroutine pres_to_density_dry_run(ncol, nz, pmiddry, temp, rho, errmsg, errflg)
     integer,          intent(in)    :: ncol      ! Number of columns
     integer,          intent(in)    :: nz        ! Number of vertical levels
-    real(r8),         intent(out)   :: rho(:,:)  ! Dry air density (kg/m^3)
+    real(kind_phys),  intent(in)    :: pmiddry(:,:) 
+    real(kind_phys),  intent(in)    :: temp(:,:) 
+    real(kind_phys),         intent(out)   :: rho(:,:)  ! Dry air density (kg/m^3)
     character(len=*), intent(out)   :: errmsg
     integer,          intent(out)   :: errflg
 
+    integer :: k, rk
+
     do k = 1, nz
       rk = nz - k + 1
-      rho(:ncol,rk) = pmiddry(:ncol,k)/(rair*state%t(:ncol,k))
+      rho(:ncol,rk) = pmiddry(:ncol,k)/(rd*temp(:ncol,k))
     end do
 
     errmsg = ''
