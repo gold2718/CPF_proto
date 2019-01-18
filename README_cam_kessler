@@ -14,6 +14,7 @@ submodules within the SCM code.
   cd CPF_proto
   manage_externals/checkout_externals
 
+  rm -rf scratch; rm -rf cam_driver/bin
   ./ccpp-framework/scripts/ccpp_capgen.py cam_driver/src/cam7_ccpp_files.txt   \
   simple/src/simple_schemes.txt                                               \
   --sdf-pathlist cam_driver/suites/suite_cam_kessler_test_simple1.xml         \
@@ -25,7 +26,8 @@ submodules within the SCM code.
   cd cam_driver
   source etc/hobart_setup.sh  (for sh)
   mkdir bin; cd bin
-  cmake -DOUTPUT_ROOT=../scratch/kessler ../src     ---  (without threading/OpenMP)
+  cmake -DOUTPUT_ROOT=../scratch/kessler ../src     
+                         (without threading/OpenMP)
                          (may add -DCMAKE_BUILD_TYPE=Debug for debugging)
   make
 
