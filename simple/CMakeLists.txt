@@ -100,8 +100,10 @@ ADD_DEFINITIONS(-DNEMS_GSM)
 if (PROJECT STREQUAL "CCPP-FV3")
   include(./CCPP_SCHEMES.cmake)
 else (PROJECT STREQUAL "CCPP-FV3")
-  set(SCHEMES
+  set(BASE_FILES
       ./src/machine.F
+  )
+  set(SCHEMES
       ./src/kessler.F90
       ./src/converters.F90
 #      ./src/kessler_update.F90
@@ -128,7 +130,7 @@ endif (${CMAKE_Fortran_COMPILER_ID} STREQUAL "GNU")
 #apply general fortran tags to all fortran source files
 if(${CMAKE_VERSION} LESS 3.3)
   string (REPLACE ";" " " f_flags_str "${f_flags}")
-  SET_PROPERTY(SOURCE ${SCHEMES} ${CAPS} APPEND_STRING PROPERTY COMPILE_FLAGS " ${f_flags_str}")
+  SET_PROPERTY(SOURCE ${BASE_FILES} ${SCHEMES} ${CAPS} APPEND_STRING PROPERTY COMPILE_FLAGS " ${f_flags_str}")
 else(${CMAKE_VERSION} LESS 3.3)
   add_compile_options("$<$<COMPILE_LANGUAGE:Fortran>:${f_flags}>")
 endif (${CMAKE_VERSION} LESS 3.3)
@@ -150,17 +152,25 @@ endif (${CMAKE_VERSION} LESS 3.3)
 #  INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/sp)
 #  INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/bacio)
 #
-INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/ccpp-framework/src)
+#INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/ccpp-framework/src)
+INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/simple)
+INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/library)
+INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR})
 #endif (PROJECT STREQUAL "CCPP-FV3")
 
 #------------------------------------------------------------------------------
 
+add_library(base ${BASE_FILES})
 add_library(simple_cam ${SCHEMES} ${CAPS})
 if (PROJECT STREQUAL "CCPP-FV3")
   target_link_libraries(simple_cam LINK_PUBLIC ${LIBS} sp_v2.0.2_d bacio_4 w3nco_d)
 else (PROJECT STREQUAL "CCPP-FV3")
   target_link_libraries(simple_cam LINK_PUBLIC ${LIBS} )
 endif (PROJECT STREQUAL "CCPP-FV3")
+set_target_properties(base PROPERTIES VERSION ${PROJECT_VERSION}
+                           SOVERSION ${PROJECT_VERSION_MAJOR}
+                           COMPILE_FLAGS "${CMAKE_Fortran_FLAGS}"
+                           LINK_FLAGS "${CMAKE_Fortran_FLAGS}")
 set_target_properties(simple_cam PROPERTIES VERSION ${PROJECT_VERSION}
                                      SOVERSION ${PROJECT_VERSION_MAJOR}
                                      COMPILE_FLAGS "${CMAKE_Fortran_FLAGS}"

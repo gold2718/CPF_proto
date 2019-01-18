@@ -31,11 +31,11 @@ endif()
 ADD_COMPILE_OPTIONS(-O0)
 
 
-SET(kessler_source_files 
+SET(kessler_source_files
             cam_kessler.F90
 )
 
-SET(library_files 
+SET(library_files
 #            shr_infnan_mod.F90
             physconst.F90
             physics_types_cam7.F90
@@ -49,8 +49,9 @@ SET(NETCDF_F90 "YES")
 FIND_PACKAGE(NetCDF)
 
 INCLUDE_DIRECTORIES(${NETCDF_INCLUDES})
-INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/ccpp-framework/src)
+#INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/ccpp-framework/src)
 INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/simple)
+INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/library)
 
 if (${CMAKE_Fortran_COMPILER_ID} MATCHES "GNU")
 #  gfortran
@@ -130,6 +131,7 @@ add_library(library ${library_files})
 #ADD_SUBDIRECTORY(${CCPP_SRC} ${CMAKE_BINARY_DIR}/ccpp-framework)
 ADD_SUBDIRECTORY(${SIMPLE_SRC} ${CMAKE_BINARY_DIR}/simple)
 
+ADD_DEPENDENCIES(library base)
 ADD_DEPENDENCIES(simple_cam library)
 
 ADD_EXECUTABLE(cam_kessler ${kessler_source_files})
@@ -137,4 +139,3 @@ TARGET_LINK_LIBRARIES(cam_kessler library simple_cam  ${NETCDF_LIBRARIES})
 #set_target_properties(cam_kessler PROPERTIES
 #                               COMPILE_FLAGS "${CMAKE_Fortran_FLAGS}"
 #                               LINK_FLAGS "${CMAKE_Fortran_FLAGS}")
-
