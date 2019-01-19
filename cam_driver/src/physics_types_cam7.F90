@@ -26,6 +26,9 @@ module physics_types
    public physics_tend_alloc    ! allocate individual components within tend
    public physics_tend_dealloc  ! deallocate individual components within tend
 
+   public state ! The model's physics_state variable
+   public tend  ! The model's physics_tend variable
+
 !==============================================================================
 !! \section arg_table_physics_state
 !! [ lat ]
@@ -407,9 +410,13 @@ module physics_types
            tw_tnd    ! cumulative boundary flux of total water
    end type physics_tend
 
+   type(physics_state) :: state
+   type(physics_tend)  :: tend
+
 !===============================================================================
 contains
 !===============================================================================
+
    subroutine physics_type_alloc(phys_state, phys_tend, begchunk, endchunk, psetcols)
 
       use ppgrid,           only: pcols
