@@ -147,7 +147,6 @@
     <type kind="len=512" units="1">character</type>
     <dimensions>
     </dimensions>
-    <module>cam_kessler_main</module>
   </variable>
 
   <variable local_name="errflg"
@@ -157,7 +156,6 @@
     <type kind="" units="flag">integer</type>
     <dimensions>
     </dimensions>
-    <module>cam_kessler_main</module>
   </variable>
 
 </model>

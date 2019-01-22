@@ -2,8 +2,8 @@
 
 The cam_kessler code calls CCPP-compliant
 physics schemes through the CCPP infrastructure code. As such, it requires the
-CCPP infrastructure code and physics code, both of which are included as git
-submodules within the SCM code.
+CCPP infrastructure and physics code, both of which are included as externals
+via the manage_externals tool
 
 ## Obtaining Code
 
@@ -11,24 +11,37 @@ submodules within the SCM code.
      -- or --
   git clone -b cac_kessler_nottested https://github.com/cacraigucar/CPF_proto.git
 
+# Below, the clone directory is referred to as <CPF_proto>
+
   cd CPF_proto
-  manage_externals/checkout_externals
+  ./manage_externals/checkout_externals
 
-  rm -rf scratch; rm -rf cam_driver/bin
-  ./ccpp-framework/scripts/ccpp_capgen.py cam_driver/src/cam7_ccpp_files.txt   \
-  simple/src/simple_schemes.txt                                               \
-  --sdf-pathlist cam_driver/suites/suite_cam_kessler_test_simple1.xml         \
-  --output-root scratch/kessler --generate-host-cap
+  # Create (or clean) and enter a build directory <build>
+  mkdir -p <build>
+    -- or --
+  rm -rf <build>/*
 
-  Note: add `--verbose` to see more output of the script (a second --verbose
-  will further increase the output and also enable stack trace on error).
+  cd <build>
 
   cd cam_driver
-  source etc/hobart_setup.sh  (for sh)
-  mkdir bin; cd bin
-  cmake -DOUTPUT_ROOT=../scratch/kessler ../src     
+  source etc/hobart_setup.sh  (for sh, see etc for other setup scripts)
+  cmake <CPF_proto>/cam_driver/src
+
+# There are some options to cmake to control the build:
+
+  -DOUTPUT_ROOT=../scratch/kessler ../src
                          (without threading/OpenMP)
                          (may add -DCMAKE_BUILD_TYPE=Debug for debugging)
+  # To switch between CAM6 data structures and CAM7 data structures:
+  -DCAM_VERSION=CAM7 or -DCAM_VERSION=CAM6
+  # Increase output from ccpp_capgen command (numbers higher than zero
+  #   increase output with numbers two or greater enabling backtrace)
+  -DVERBOSITY=<#>
+  # To change the directory where the CCPP caps are generated (default is
+  #    <build>/ccpp):
+  -DCCPP_CAPS=<cap_gen_dir>
+
+## Build the code
   make
 
 1. Run the job
