@@ -6,11 +6,24 @@ include(CMakeForceCompiler)
 
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake/modules)
 
+# Set the default CAM model to be CAM7
+SET(CAM_VERSION "CAM7" CACHE STRING "CAM model version (default: 'CAM7')")
+# By default, no verbose output
+SET(VERBOSITY 0 CACHE STRING "Verbosity level of output (default: 0)")
+# By default, generated caps go in ccpp subdir
+SET(CCPP_CAPS "${CMAKE_BINARY_DIR}/ccpp" CACHE
+  STRING "Location of CCPP-generated cap files")
+
 #MESSAGE("The NETCDF env. variable is $ENV{NETCDF}")
 SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} $ENV{NETCDF})
 
-SET(CCPP_SRC ${CMAKE_SOURCE_DIR}/../../ccpp-framework)
-SET(SIMPLE_SRC ${CMAKE_SOURCE_DIR}/../../simple)
+get_filename_component(CAM_DRIVER "${CMAKE_SOURCE_DIR}" DIRECTORY)
+get_filename_component(CPF_ROOT ${CAM_DRIVER} DIRECTORY)
+SET(CAM_SRC        ${CAM_DRIVER}/src)
+SET(SUITES         ${CAM_DRIVER}/suites)
+SET(CCPP_FRAMEWORK ${CPF_ROOT}/ccpp-framework)
+SET(SIMPLE         ${CPF_ROOT}/simple)
+SET(SIMPLE_SRC     ${SIMPLE}/src)
 
 # Use rpaths on MacOSX
 set(CMAKE_MACOSX_RPATH 1)
@@ -31,11 +44,11 @@ endif()
 ADD_COMPILE_OPTIONS(-O0)
 
 
-SET(kessler_source_files 
-            cam_kessler.F90
+SET(kessler_source_files
+  cam_kessler.F90
 )
 
-SET(library_files 
+SET(library_files
 #            shr_infnan_mod.F90
             physconst.F90
             physics_types_cam7.F90
@@ -49,8 +62,6 @@ SET(NETCDF_F90 "YES")
 FIND_PACKAGE(NetCDF)
 
 INCLUDE_DIRECTORIES(${NETCDF_INCLUDES})
-INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/ccpp-framework/src)
-INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/simple)
 
 if (${CMAKE_Fortran_COMPILER_ID} MATCHES "GNU")
 #  gfortran
@@ -87,27 +98,6 @@ else (${CMAKE_Fortran_COMPILER_ID} MATCHES "GNU")
   message (FATAL_ERROR "This program has only been compiled with gfortran, pgf90 and ifort. If another compiler is needed, the appropriate flags must be added in ${CMAKE_SOURCE_DIR}/CMakeLists.txt")
 endif (${CMAKE_Fortran_COMPILER_ID} MATCHES "GNU")
 
-#if(${CMAKE_VERSION} LESS 3.3)
-#  string (REPLACE ";" " " f_flags_str "${f_flags}")
-#  set(CMAKE_Fortran_FLAGS "${f_flags_str}")
-#  message (STATUS "CMAKE_Fortran_FLAGS: ${CMAKE_Fortran_FLAGS}")
-#else(${CMAKE_VERSION} LESS 3.3)
-#  add_compile_options("$<$<COMPILE_LANGUAGE:Fortran>:${f_flags}>")
-#endif (${CMAKE_VERSION} LESS 3.3)
-
-#------------------------------------------------------------------------------
-# The Fortran compiler/linker flag inserted by cmake to create shared libraries
-# with the Intel compiler is deprecated (-i_dynamic), correct here.
-# CMAKE_Fortran_COMPILER_ID = {"Intel", "PGI", "GNU", "Clang", "MSVC", ...}
-if ("${CMAKE_Fortran_COMPILER_ID}" STREQUAL "Intel")
-    string(REPLACE "-i_dynamic" "-shared-intel"
-           CMAKE_SHARED_LIBRARY_CREATE_Fortran_FLAGS
-           "${CMAKE_SHARED_LIBRARY_CREATE_Fortran_FLAGS}")
-    string(REPLACE "-i_dynamic" "-shared-intel"
-           CMAKE_SHARED_LIBRARY_LINK_Fortran_FLAGS
-           "${CMAKE_SHARED_LIBRARY_LINK_Fortran_FLAGS}")
-endif()
-
 #------------------------------------------------------------------------------
 # CMake Modules
 # Set the CMake module path
@@ -126,15 +116,38 @@ else(OPENMP)
 endif()
 
 add_library(library ${library_files})
+INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/library)
 
-#ADD_SUBDIRECTORY(${CCPP_SRC} ${CMAKE_BINARY_DIR}/ccpp-framework)
-ADD_SUBDIRECTORY(${SIMPLE_SRC} ${CMAKE_BINARY_DIR}/simple)
+# Run ccpp_capgen
+set(CAPGEN_CMD "${CCPP_FRAMEWORK}/scripts/ccpp_capgen.py")
+string(TOLOWER "${CAM_VERSION}_ccpp_files.txt" MODEL_FILES)
+list(APPEND CAPGEN_CMD "${CAM_SRC}/${MODEL_FILES}")
+list(APPEND CAPGEN_CMD "${SIMPLE_SRC}/simple_schemes.txt")
+list(APPEND CAPGEN_CMD "--sdf-pathlist")
+list(APPEND CAPGEN_CMD "${SUITES}/suite_cam_kessler_test_simple1.xml")
+list(APPEND CAPGEN_CMD "--output-root")
+list(APPEND CAPGEN_CMD "${CCPP_CAPS}")
+list(APPEND CAPGEN_CMD "--generate-host-cap")
+while (VERBOSITY GREATER 0)
+  list(APPEND CAPGEN_CMD "--verbose")
+  MATH(EXPR VERBOSITY "${VERBOSITY} - 1")
+endwhile ()
+#MESSAGE(STATUS "capgen cmd: ${CAPGEN_CMD}")
+EXECUTE_PROCESS(COMMAND ${CAPGEN_CMD} WORKING_DIRECTORY ${CPF_ROOT}
+  OUTPUT_VARIABLE CAPGEN_OUT ERROR_VARIABLE CAPGEN_OUT RESULT_VARIABLE RES)
+MESSAGE(STATUS "ccpp_capgen output: '${CAPGEN_OUT}'")
+if (NOT (RES EQUAL 0))
+  MESSAGE(ERROR "CCPP cap generation FAILED: result = ${RES}")
+endif()
 
+ADD_SUBDIRECTORY(${SIMPLE} ${CMAKE_BINARY_DIR}/simple)
+INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/simple)
+
+ADD_DEPENDENCIES(library base)
 ADD_DEPENDENCIES(simple_cam library)
 
 ADD_EXECUTABLE(cam_kessler ${kessler_source_files})
 TARGET_LINK_LIBRARIES(cam_kessler library simple_cam  ${NETCDF_LIBRARIES})
-#set_target_properties(cam_kessler PROPERTIES
-#                               COMPILE_FLAGS "${CMAKE_Fortran_FLAGS}"
-#                               LINK_FLAGS "${CMAKE_Fortran_FLAGS}")
-
+set_target_properties(cam_kessler PROPERTIES
+                               COMPILE_FLAGS "${CMAKE_Fortran_FLAGS}"
+                               LINK_FLAGS "${CMAKE_Fortran_FLAGS}")

@@ -33,13 +33,9 @@ set(AUTHORS  "Cheryl Craig" "Steve Goldhaber" )
 # Enable Fortran
 enable_language(Fortran)
 
-# DH this should be a PROJECT == CCPP-SCM test
-if (NOT PROJECT STREQUAL "CCPP-FV3")
-  #------------------------------------------------------------------------------
-  # CMake Modules
-  # Set the CMake module path
-  list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../ccpp-framework/cmake")
-endif (NOT PROJECT STREQUAL "CCPP-FV3")
+# CMake Modules
+# Set the CMake module path
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../ccpp-framework/cmake")
 
 #------------------------------------------------------------------------------
 # Set OpenMP flags for C/C++/Fortran
@@ -55,19 +51,6 @@ else(OPENMP)
 endif()
 
 #------------------------------------------------------------------------------
-# The Fortran compiler/linker flag inserted by cmake to create shared libraries
-# with the Intel compiler is deprecated (-i_dynamic), correct here.
-# CMAKE_Fortran_COMPILER_ID = {"Intel", "PGI", "GNU", "Clang", "MSVC", ...}
-if ("${CMAKE_Fortran_COMPILER_ID}" STREQUAL "Intel")
-    string(REPLACE "-i_dynamic" "-shared-intel"
-           CMAKE_SHARED_LIBRARY_CREATE_Fortran_FLAGS
-           "${CMAKE_SHARED_LIBRARY_CREATE_Fortran_FLAGS}")
-    string(REPLACE "-i_dynamic" "-shared-intel"
-           CMAKE_SHARED_LIBRARY_LINK_Fortran_FLAGS
-           "${CMAKE_SHARED_LIBRARY_LINK_Fortran_FLAGS}")
-endif()
-
-#------------------------------------------------------------------------------
 # Set a default build type if none was specified
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     message(STATUS "Setting build type to 'Release' as none was specified.")
@@ -78,8 +61,8 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 endif()
 
 #------------------------------------------------------------------------------
-# By default we want a shared library
-option(BUILD_SHARED_LIBS "Build a shared library" ON)
+# By default we want a static library
+option(BUILD_SHARED_LIBS "Build a shared library" OFF)
 
 #------------------------------------------------------------------------------
 # Add the CCPP include/module directory
@@ -92,30 +75,20 @@ set(CCPP_LIB_DIRS "" CACHE FILEPATH "Path to ccpp library")
 link_directories(${CCPP_LIB_DIRS})
 list(APPEND LIBS "ccpp")
 
-# Add the required preprocessor flags so that cmake can sort out the dependencies
-ADD_DEFINITIONS(-DNEMS_GSM)
-
 #------------------------------------------------------------------------------
 # Set the sources: physics schemes
-if (PROJECT STREQUAL "CCPP-FV3")
-  include(./CCPP_SCHEMES.cmake)
-else (PROJECT STREQUAL "CCPP-FV3")
-  set(SCHEMES
-      ./src/machine.F
-      ./src/kessler.F90
-      ./src/converters.F90
+set(BASE_FILES
+  ./src/machine.F
+  )
+set(SCHEMES
+  ./src/kessler.F90
+  ./src/converters.F90
 #      ./src/kessler_update.F90
   )
-endif (PROJECT STREQUAL "CCPP-FV3")
 
-# Set the sources: physics scheme caps
-#set(CAPS
-#      ./physics/kessler_cap.F90
-#      ./physics/kessler_update_cap.F90
-#  )
 # Read the list of files from capfiles.txt and set to CAPS
-file(STRINGS ${OUTPUT_ROOT}/capfiles.txt CAPS)
-  message ("OUTPUT_ROOT=" ${OUTPUT_ROOT})
+file(STRINGS ${CCPP_CAPS}/capfiles.txt CAPS)
+  message ("CCPP_CAPS=" ${CCPP_CAPS})
 
 if (${CMAKE_Fortran_COMPILER_ID} STREQUAL "GNU")
   set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -ffree-line-length-none")
@@ -128,39 +101,24 @@ endif (${CMAKE_Fortran_COMPILER_ID} STREQUAL "GNU")
 #apply general fortran tags to all fortran source files
 if(${CMAKE_VERSION} LESS 3.3)
   string (REPLACE ";" " " f_flags_str "${f_flags}")
-  SET_PROPERTY(SOURCE ${SCHEMES} ${CAPS} APPEND_STRING PROPERTY COMPILE_FLAGS " ${f_flags_str}")
+  SET_PROPERTY(SOURCE ${BASE_FILES} ${SCHEMES} ${CAPS} APPEND_STRING PROPERTY COMPILE_FLAGS " ${f_flags_str}")
 else(${CMAKE_VERSION} LESS 3.3)
   add_compile_options("$<$<COMPILE_LANGUAGE:Fortran>:${f_flags}>")
 endif (${CMAKE_VERSION} LESS 3.3)
 
-#if (PROJECT STREQUAL "CCPP-FV3")
-#  link_directories(${NCEPLIBS_DIR}/lib)
-## DH this should be a PROJECT == CCPP-SCM and else undefined test (similar in other places)
-#else (PROJECT STREQUAL "CCPP-FV3")
-#  SET(W3LIB_SRC ${CMAKE_CURRENT_SOURCE_DIR}/../external/w3nco/v2.0.6/src)
-#  SET(BACIOLIB_SRC ${CMAKE_CURRENT_SOURCE_DIR}/../external/bacio/v2.0.1/src)
-#  SET(SPLIB_SRC ${CMAKE_CURRENT_SOURCE_DIR}/../external/sp/v2.0.2/src)
-#
-#  #add "sibling" directories (must specify the build directory too)
-#  ADD_SUBDIRECTORY(${W3LIB_SRC} ${CMAKE_BINARY_DIR}/w3nco)
-#  ADD_SUBDIRECTORY(${BACIOLIB_SRC} ${CMAKE_BINARY_DIR}/bacio)
-#  ADD_SUBDIRECTORY(${SPLIB_SRC} ${CMAKE_BINARY_DIR}/sp)
-#
-#  INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/w3nco)
-#  INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/sp)
-#  INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/bacio)
-#
-INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/ccpp-framework/src)
-#endif (PROJECT STREQUAL "CCPP-FV3")
+INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/simple)
+INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/library)
+INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR})
 
 #------------------------------------------------------------------------------
 
+add_library(base ${BASE_FILES})
 add_library(simple_cam ${SCHEMES} ${CAPS})
-if (PROJECT STREQUAL "CCPP-FV3")
-  target_link_libraries(simple_cam LINK_PUBLIC ${LIBS} sp_v2.0.2_d bacio_4 w3nco_d)
-else (PROJECT STREQUAL "CCPP-FV3")
-  target_link_libraries(simple_cam LINK_PUBLIC ${LIBS} )
-endif (PROJECT STREQUAL "CCPP-FV3")
+target_link_libraries(simple_cam LINK_PUBLIC ${LIBS} )
+set_target_properties(base PROPERTIES VERSION ${PROJECT_VERSION}
+                           SOVERSION ${PROJECT_VERSION_MAJOR}
+                           COMPILE_FLAGS "${CMAKE_Fortran_FLAGS}"
+                           LINK_FLAGS "${CMAKE_Fortran_FLAGS}")
 set_target_properties(simple_cam PROPERTIES VERSION ${PROJECT_VERSION}
                                      SOVERSION ${PROJECT_VERSION_MAJOR}
                                      COMPILE_FLAGS "${CMAKE_Fortran_FLAGS}"
@@ -180,18 +138,3 @@ add_custom_command(TARGET simple_cam
                    COMMENT "Running pgifix_wrapper.py over all scheme caps")
 endif (${CMAKE_Fortran_COMPILER_ID} STREQUAL "PGI")
 # *DH end hack for PGI compiler
-
-if (PROJECT STREQUAL "CCPP-FV3")
-  # Define where to install the library
-  install(TARGETS simple_cam
-          EXPORT simple_cam-targets
-          ARCHIVE DESTINATION lib
-          LIBRARY DESTINATION lib
-          RUNTIME DESTINATION lib
-  )
-  # Export our configuration
-  install(EXPORT simple_cam-targets
-          FILE simple_cam-config.cmake
-          DESTINATION lib/cmake
-  )
-endif (PROJECT STREQUAL "CCPP-FV3")
