@@ -42,7 +42,7 @@ mark_as_advanced(NETCDF_LIBRARIES_C)
 set (NetCDF_has_interfaces "YES") # will be set to NO if we're missing any interfaces
 set (NetCDF_libs ${NETCDF_LIBRARIES_C})
 
-get_filename_component (NetCDF_lib_dirs ${NETCDF_LIBRARIES_C} PATH)
+get_filename_component(NetCDF_lib_dirs ${NETCDF_LIBRARIES_C} DIRECTORY)
 
 macro (NetCDF_check_interface lang header libs)
   if (NETCDF_${lang})

@@ -9,7 +9,7 @@ contains
   subroutine cam_kessler_main_sub()
 
     use ppgrid,        only: pcols, pver, pverp
-    use physics_types, only: state, tend, physics_state
+    use physics_types, only: state, tend, physics_state, physics_type_alloc
     use CAM_ccpp_cap,  only: CAM_ccpp_physics_initialize
     use CAM_ccpp_cap,  only: CAM_ccpp_physics_timestep_initial
     use CAM_ccpp_cap,  only: CAM_ccpp_physics_run
@@ -30,17 +30,22 @@ contains
     integer            :: errflg
 
     ! Allocate the host variables
-    call physics_type_alloc(phys_state, phys_tend, begchunk, endchunk, psetcols)
+    call physics_type_alloc(state, tend, begchunk, endchunk, pcols)
 
     !  open(unit=50, file='../src/fort.50')
     !  read(50, fmt='(2i4)') icols, iver
 
     ! Use the suite information to setup the run
-    call CAM_ccpp_physics_initialize('cam_kessler_test')
+    call CAM_ccpp_physics_initialize('cam_kessler_test', errmsg, errflg)
+    if (errflg /= 0) then
+       write(6, *) trim(errmsg)
+       stop
+    end if
 
     ! loop over all time steps
     nwrite=0
     do j = 1, ntimes
+       ncol = pcols
 !      read(50,fmt='(a10,i4)') string(1:19),nwrite
 !      read(50,fmt='(a20,2i4,f20.13)') string(1:19),ncol, pver_in, ztodt
 !      read(50,fmt='(a10,(e22.15))') string,rho(:ncol,:)
@@ -51,9 +56,14 @@ contains
 !      read(50,fmt='(a10,(e22.15))') string,qc(:ncol,:)
 !      read(50,fmt='(a10,(e22.15))') string,qr(:ncol,:)
 !      read(50,fmt='(a10,(e22.15))') string,precl(:ncol)
-      do i = 1, ncols
-        call CAM_ccpp_physics_run('cam_kessler_test', 'physics')
-      write(6,*) 'At time step', j, 'in host model Temperature =', state%T(1, pver)
+       col_start = 1
+       col_end = ncol
+       call CAM_ccpp_physics_run('cam_kessler_test', 'physics', col_start, col_end, errmsg, errflg)
+       if (errflg /= 0) then
+          write(6, *) trim(errmsg)
+          stop
+       end if
+       write(6,*) 'At time step', j, 'in host model Temperature =', state%T(1, pver)
         ! write(51,'(a10,i4)') 'nwrite=',nwrite
         ! write(51,'(a20,2i4,f20.13)') 'ncol, pver, ztodt=',ncol, pver, ztodt
         ! write(51,fmt='(a10,(e22.15))') 'rho=',rho(:ncol,:)
@@ -64,28 +74,20 @@ contains
         ! write(51,fmt='(a10,(e22.15))') 'qc=',qc(:ncol,:)
         ! write(51,fmt='(a10,(e22.15))') 'qr=',qr(:ncol,:)
         ! write(51,fmt='(a10,(e22.15))') 'precl=',precl(:ncol)
-        nwrite = nwrite + 1
-
-        if (ierr /= 0) then
-          write(*,*) errmsg
-          write(*,'(a,i0,a)') 'An error occurred in CAM_ccpp_physics_run for column ', i, '. Exiting...'
-          stop
-        end if
-      end do
+       nwrite = nwrite + 1
 
       ! Decrease the temperature every time step
-      state_host%Temperature = state_host%Temperature - 100._kind_phys
+!      state_host%Temperature = state_host%Temperature - 100._kind_phys
 
     end do
 
 
-    do i = 1, ncols
-      call ccpp_timestep_final('cam_kessler_test')
-      if (ierr/=0) then
-        write(*,'(a,i0,a)') 'An error occurred in ccpp_finalize for column ', i, '. Exiting...'
-        stop
-      end if
-    end do
+    call CAM_ccpp_physics_timestep_final('cam_kessler_test', errmsg, errflg)
+    if (errflg /= 0) then
+       write(6, *) trim(errmsg)
+       write(6,'(a)') 'An error occurred in ccpp_timestep_final, Exiting...'
+       stop
+    end if
 
   end subroutine cam_kessler_main_sub
 
@@ -96,6 +98,6 @@ end module cam_kessler_main
 !! The Doxygen documentation system cannot handle in-body comments in Fortran main programs, so the "main" program was put in the
 !! subroutine \ref cam_kessler_main_sub above.
 program cam_kessler
-  use cam_kessler_main
+  use cam_kessler_main, only: cam_kessler_main_sub
   call cam_kessler_main_sub()
 end program cam_kessler
