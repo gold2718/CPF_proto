@@ -357,21 +357,21 @@ module physics_types
 !==============================================================================
 !!  \section arg_table_physics_tend
 !! [ dtdt ]
-!!   standard_name = tendency_of_temperature
+!!   standard_name = total_tendency_of_temperature
 !!   state_variable = false
 !!   type = real
 !!   kind = kind_phys
 !!   units = K s-1
 !!   dimensions = (horizontal_loop_extent, vertical_layer_dimension)
 !! [ dudt ]
-!!   standard_name = tendency_of_eastward_wind
+!!   standard_name = total_tendency_of_eastward_wind
 !!   state_variable = false
 !!   type = real
 !!   kind = kind_phys
 !!   units = m s-2
 !!   dimensions = (horizontal_loop_extent, vertical_layer_dimension)
 !! [ dvdt ]
-!!   standard_name = tendency_of_northward_wind
+!!   standard_name = total_tendency_of_northward_wind
 !!   state_variable = false
 !!   type = real
 !!   kind = kind_phys
