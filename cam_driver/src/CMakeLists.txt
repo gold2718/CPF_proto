@@ -11,7 +11,7 @@ SET(CAM_VERSION "CAM7" CACHE STRING "CAM model version (default: 'CAM7')")
 # By default, no verbose output
 SET(VERBOSITY 0 CACHE STRING "Verbosity level of output (default: 0)")
 # By default, generated caps go in ccpp subdir
-SET(CCPP_CAPS "${CMAKE_BINARY_DIR}/ccpp" CACHE
+SET(CCPP_CAP_FILES "${CMAKE_BINARY_DIR}/ccpp" CACHE
   STRING "Location of CCPP-generated cap files")
 
 #MESSAGE("The NETCDF env. variable is $ENV{NETCDF}")
@@ -126,7 +126,7 @@ list(APPEND CAPGEN_CMD "${SIMPLE_SRC}/simple_schemes.txt")
 list(APPEND CAPGEN_CMD "--sdf-pathlist")
 list(APPEND CAPGEN_CMD "${SUITES}/suite_cam_kessler_test_simple1.xml")
 list(APPEND CAPGEN_CMD "--output-root")
-list(APPEND CAPGEN_CMD "${CCPP_CAPS}")
+list(APPEND CAPGEN_CMD "${CCPP_CAP_FILES}")
 list(APPEND CAPGEN_CMD "--generate-host-cap")
 while (VERBOSITY GREATER 0)
   list(APPEND CAPGEN_CMD "--verbose")
@@ -137,17 +137,23 @@ EXECUTE_PROCESS(COMMAND ${CAPGEN_CMD} WORKING_DIRECTORY ${CPF_ROOT}
   OUTPUT_VARIABLE CAPGEN_OUT ERROR_VARIABLE CAPGEN_OUT RESULT_VARIABLE RES)
 MESSAGE(STATUS "ccpp_capgen output: '${CAPGEN_OUT}'")
 if (NOT (RES EQUAL 0))
-  MESSAGE(ERROR "CCPP cap generation FAILED: result = ${RES}")
+  MESSAGE(FATAL_ERROR "CCPP cap generation FAILED: result = ${RES}")
 endif()
+
+# Read the list of files from capfiles.txt and set to CCPP_CAPS
+file(STRINGS ${CCPP_CAP_FILES}/capfiles.txt CCPP_CAPS)
+add_library(caps ${CCPP_CAPS})
+INCLUDE_DIRECTORIES(${CCPP_CAP_FILES})
 
 ADD_SUBDIRECTORY(${SIMPLE} ${CMAKE_BINARY_DIR}/simple)
 INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/simple)
 
 ADD_DEPENDENCIES(library base)
 ADD_DEPENDENCIES(simple_cam library)
+ADD_DEPENDENCIES(caps simple_cam)
 
 ADD_EXECUTABLE(cam_kessler ${kessler_source_files})
-TARGET_LINK_LIBRARIES(cam_kessler library simple_cam  ${NETCDF_LIBRARIES})
+TARGET_LINK_LIBRARIES(cam_kessler caps simple_cam library base ${NETCDF_LIBRARIES})
 set_target_properties(cam_kessler PROPERTIES
                                COMPILE_FLAGS "${CMAKE_Fortran_FLAGS}"
                                LINK_FLAGS "${CMAKE_Fortran_FLAGS}")
