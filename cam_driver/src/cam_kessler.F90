@@ -8,26 +8,29 @@ contains
 
   subroutine cam_kessler_main_sub()
 
-    use ppgrid,        only: pcols, pver, pverp
-    use physics_types, only: state, tend, physics_state, physics_type_alloc
-    use CAM_ccpp_cap,  only: CAM_ccpp_physics_initialize
-    use CAM_ccpp_cap,  only: CAM_ccpp_physics_timestep_initial
-    use CAM_ccpp_cap,  only: CAM_ccpp_physics_run
-    use CAM_ccpp_cap,  only: CAM_ccpp_physics_timestep_final
-    use CAM_ccpp_cap,  only: CAM_ccpp_physics_finalize
+    use ppgrid,           only: pcols, pver, pverp
+    use physics_types,    only: state, tend, physics_state, physics_type_alloc
+    use CAM_ccpp_cap,     only: CAM_ccpp_physics_initialize
+    use CAM_ccpp_cap,     only: CAM_ccpp_physics_timestep_initial
+    use CAM_ccpp_cap,     only: CAM_ccpp_physics_run
+    use CAM_ccpp_cap,     only: CAM_ccpp_physics_timestep_final
+    use CAM_ccpp_cap,     only: CAM_ccpp_physics_finalize
+    use ccpp_physics_api, only: ccpp_physics_suite_list
+    use ccpp_physics_api, only: ccpp_physics_suite_part_list
 
-    integer, parameter :: begchunk = 33 ! Not needed for CAM7
-    integer, parameter :: endchunk = 33 ! Not needed for CAM7
-    integer, parameter :: ncols = 1
-    integer, parameter :: ntimes = 11
+    integer,            parameter   :: begchunk = 33 ! Not needed for CAM7
+    integer,            parameter   :: endchunk = 33 ! Not needed for CAM7
+    integer,            parameter   :: ncols = 1
+    integer,            parameter   :: ntimes = 11
 
-    integer            :: i, j
-    integer            :: ierr
-    integer            :: col_start, col_end
-    integer            :: ncol, nwrite
-    character(len=20)  :: string
-    character(len=512) :: errmsg
-    integer            :: errflg
+    integer                         :: i, j
+    integer                         :: ierr
+    integer                         :: col_start, col_end
+    integer                         :: ncol, nwrite
+    character(len=20)               :: string
+    character(len=512)              :: errmsg
+    character(len=128), allocatable :: part_names(:)
+    integer                         :: errflg
 
     ! Allocate the host variables
     call physics_type_alloc(state, tend, begchunk, endchunk, pcols)
@@ -56,11 +59,17 @@ contains
 !      read(50,fmt='(a10,(e22.15))') string,qc(:ncol,:)
 !      read(50,fmt='(a10,(e22.15))') string,qr(:ncol,:)
 !      read(50,fmt='(a10,(e22.15))') string,precl(:ncol)
+       call CAM_ccpp_physics_timestep_initial('cam_kessler_test', errmsg, errflg)
        col_start = 1
        col_end = ncol
        call CAM_ccpp_physics_run('cam_kessler_test', 'physics', col_start, col_end, errmsg, errflg)
        if (errflg /= 0) then
           write(6, *) trim(errmsg)
+          call ccpp_physics_suite_part_list('cam_kessler_test', part_names, errmsg, errflg)
+          write(6, *) 'Available suite parts are:'
+          do nwrite = 1, size(part_names)
+             write(6, *) trim(part_names(nwrite))
+          end do
           stop
        end if
        write(6,*) 'At time step', j, 'in host model Temperature =', state%T(1, pver)
@@ -78,11 +87,12 @@ contains
 
       ! Decrease the temperature every time step
 !      state_host%Temperature = state_host%Temperature - 100._kind_phys
+       call CAM_ccpp_physics_timestep_final('cam_kessler_test', errmsg, errflg)
 
     end do
 
 
-    call CAM_ccpp_physics_timestep_final('cam_kessler_test', errmsg, errflg)
+    call CAM_ccpp_physics_finalize('cam_kessler_test', errmsg, errflg)
     if (errflg /= 0) then
        write(6, *) trim(errmsg)
        write(6,'(a)') 'An error occurred in ccpp_timestep_final, Exiting...'

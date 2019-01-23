@@ -29,6 +29,8 @@ module physics_types
    public state ! The model's physics_state variable
    public tend  ! The model's physics_tend variable
 
+   private endrun
+
 !==============================================================================
 !! \section arg_table_physics_state
 !! [ lat ]
@@ -410,12 +412,18 @@ module physics_types
            tw_tnd    ! cumulative boundary flux of total water
    end type physics_tend
 
-   type(physics_state) :: state
-   type(physics_tend)  :: tend
+   type(physics_state), pointer :: state => NULL()
+   type(physics_tend), pointer  :: tend => NULL()
 
 !===============================================================================
 contains
 !===============================================================================
+
+   subroutine endrun(message)
+      character(len=*), intent(in) :: message
+      write(6, *) trim(message)
+      stop
+   end subroutine endrun
 
    subroutine physics_type_alloc(phys_state, phys_tend, begchunk, endchunk, psetcols)
 
@@ -424,35 +432,31 @@ contains
 
       implicit none
 
-      type(physics_state), pointer :: phys_state(:)
-      type(physics_tend), pointer :: phys_tend(:)
-      integer, intent(in) :: begchunk, endchunk
+      type(physics_state), pointer :: phys_state
+      type(physics_tend), pointer :: phys_tend
+      integer, intent(in) :: begchunk, endchunk ! Ignored for CAM7
       integer, intent(in) :: psetcols
 
-      integer :: ierr=0, lchnk
+      integer :: ierr=0
       integer :: iulog = 6
       type(physics_state), pointer :: state
       type(physics_tend), pointer :: tend
 
-      allocate(phys_state(begchunk:endchunk), stat=ierr)
+      allocate(phys_state, stat=ierr)
       if( ierr /= 0 ) then
          write(iulog,*) 'physics_types: phys_state allocation error = ',ierr
          call endrun('physics_types: failed to allocate physics_state array')
       end if
 
-      do lchnk=begchunk,endchunk
-         call physics_state_alloc(phys_state(lchnk),lchnk,pcols)
-      end do
+      call physics_state_alloc(phys_state, pcols)
 
-      allocate(phys_tend(begchunk:endchunk), stat=ierr)
+      allocate(phys_tend, stat=ierr)
       if( ierr /= 0 ) then
          write(iulog,*) 'physics_types: phys_tend allocation error = ',ierr
          call endrun('physics_types: failed to allocate physics_tend array')
       end if
 
-      do lchnk=begchunk,endchunk
-         call physics_tend_alloc(phys_tend(lchnk),phys_state(lchnk)%psetcols)
-      end do
+      call physics_tend_alloc(phys_tend, phys_state%psetcols)
 
    end subroutine physics_type_alloc
 !===============================================================================
@@ -476,7 +480,7 @@ contains
       integer i, k, m, ncol
 
       ! Allocate state_out with same subcol dimension as state_in
-      call physics_state_alloc ( state_out, state_in%lchnk, state_in%psetcols)
+      call physics_state_alloc(state_out, state_in%psetcols)
 
       ncol = state_in%ncol
 
@@ -581,7 +585,7 @@ contains
 
 !===============================================================================
 
-   subroutine physics_state_alloc(state,lchnk,psetcols)
+   subroutine physics_state_alloc(state, psetcols)
 
 !      use shr_infnan_mod,   only: inf, assignment(=)
       use ppgrid,           only: pver
@@ -590,13 +594,11 @@ contains
       ! allocate the individual state components
 
       type(physics_state), intent(inout) :: state
-      integer,intent(in)                 :: lchnk
 
       integer, intent(in)                :: psetcols
 
       integer :: ierr=0, i
 
-      state%lchnk    = lchnk
       state%psetcols = psetcols
       state%ngrdcol  = psetcols  ! Number of grid columns
 
