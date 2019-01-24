@@ -8,6 +8,7 @@ SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake/modules)
 
 # Set the default CAM model to be CAM7
 SET(CAM_VERSION "CAM7" CACHE STRING "CAM model version (default: 'CAM7')")
+string(TOLOWER "${CAM_VERSION}" CAM_VERSTRING)
 # By default, no verbose output
 SET(VERBOSITY 0 CACHE STRING "Verbosity level of output (default: 0)")
 # By default, generated caps go in ccpp subdir
@@ -43,15 +44,12 @@ endif()
 
 ADD_COMPILE_OPTIONS(-O0)
 
-
-SET(kessler_source_files
-  cam_kessler.F90
-)
+SET(kessler_source_files "${CAM_VERSTRING}_kessler.F90")
 
 SET(library_files
 #            shr_infnan_mod.F90
             physconst.F90
-            physics_types_cam7.F90
+            physics_types_${CAM_VERSTRING}.F90
             constituents.F90
             ppgrid.F90
             time_manager.F90
@@ -120,7 +118,7 @@ INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/library)
 
 # Run ccpp_capgen
 set(CAPGEN_CMD "${CCPP_FRAMEWORK}/scripts/ccpp_capgen.py")
-string(TOLOWER "${CAM_VERSION}_ccpp_files.txt" MODEL_FILES)
+set(MODEL_FILES "${CAM_VERSTRING}_ccpp_files.txt")
 list(APPEND CAPGEN_CMD "${CAM_SRC}/${MODEL_FILES}")
 list(APPEND CAPGEN_CMD "${SIMPLE_SRC}/simple_schemes.txt")
 list(APPEND CAPGEN_CMD "--sdf-pathlist")
@@ -135,10 +133,12 @@ endwhile ()
 #MESSAGE(STATUS "capgen cmd: ${CAPGEN_CMD}")
 EXECUTE_PROCESS(COMMAND ${CAPGEN_CMD} WORKING_DIRECTORY ${CPF_ROOT}
   OUTPUT_VARIABLE CAPGEN_OUT ERROR_VARIABLE CAPGEN_OUT RESULT_VARIABLE RES)
-MESSAGE(STATUS "ccpp_capgen output: '${CAPGEN_OUT}'")
-if (NOT (RES EQUAL 0))
+MESSAGE(STATUS "${CAPGEN_OUT}")
+if (RES EQUAL 0)
+  MESSAGE(STATUS "CCPP cap generation completed")
+else(RES EQUAL 0)
   MESSAGE(FATAL_ERROR "CCPP cap generation FAILED: result = ${RES}")
-endif()
+endif(RES EQUAL 0)
 
 # Read the list of files from capfiles.txt and set to CCPP_CAPS
 file(STRINGS ${CCPP_CAP_FILES}/capfiles.txt CCPP_CAPS)

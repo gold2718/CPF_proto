@@ -18,14 +18,14 @@ contains
     use ccpp_physics_api, only: ccpp_physics_suite_list
     use ccpp_physics_api, only: ccpp_physics_suite_part_list
 
-    integer,            parameter   :: begchunk = 33 ! Not needed for CAM7
-    integer,            parameter   :: endchunk = 33 ! Not needed for CAM7
+    integer,            parameter   :: begchunk = 33
+    integer,            parameter   :: endchunk = 33
     integer,            parameter   :: ncols = 1
     integer,            parameter   :: ntimes = 11
 
     integer                         :: i, j
     integer                         :: ierr
-    integer                         :: col_start, col_end
+    integer                         :: lchnk
     integer                         :: ncol, nwrite
     character(len=20)               :: string
     character(len=512)              :: errmsg
@@ -39,7 +39,7 @@ contains
     !  read(50, fmt='(2i4)') icols, iver
 
     ! Use the suite information to setup the run
-    call CAM_ccpp_physics_initialize('cam_kessler_test', errmsg, errflg)
+    call CAM_ccpp_physics_initialize('cam_kessler_test', begchunk, endchunk, errmsg, errflg)
     if (errflg /= 0) then
        write(6, *) trim(errmsg)
        stop
@@ -48,7 +48,6 @@ contains
     ! loop over all time steps
     nwrite=0
     do j = 1, ntimes
-       ncol = pcols
 !      read(50,fmt='(a10,i4)') string(1:19),nwrite
 !      read(50,fmt='(a20,2i4,f20.13)') string(1:19),ncol, pver_in, ztodt
 !      read(50,fmt='(a10,(e22.15))') string,rho(:ncol,:)
@@ -59,20 +58,21 @@ contains
 !      read(50,fmt='(a10,(e22.15))') string,qc(:ncol,:)
 !      read(50,fmt='(a10,(e22.15))') string,qr(:ncol,:)
 !      read(50,fmt='(a10,(e22.15))') string,precl(:ncol)
-       call CAM_ccpp_physics_timestep_initial('cam_kessler_test', errmsg, errflg)
-       col_start = 1
-       col_end = ncol
-       call CAM_ccpp_physics_run('cam_kessler_test', 'physics', col_start, col_end, errmsg, errflg)
-       if (errflg /= 0) then
-          write(6, *) trim(errmsg)
-          call ccpp_physics_suite_part_list('cam_kessler_test', part_names, errmsg, errflg)
-          write(6, *) 'Available suite parts are:'
-          do nwrite = 1, size(part_names)
-             write(6, *) trim(part_names(nwrite))
-          end do
-          stop
-       end if
-       write(6,*) 'At time step', j, 'in host model Temperature =', state%T(1, pver)
+       call CAM_ccpp_physics_timestep_initial('cam_kessler_test', begchunk, endchunk, errmsg, errflg)
+       do lchnk = begchunk, endchunk
+          ncol = pcols
+          call CAM_ccpp_physics_run('cam_kessler_test', 'physics', begchunk, endchunk, lchnk, ncol, errmsg, errflg)
+          if (errflg /= 0) then
+             write(6, *) trim(errmsg)
+             call ccpp_physics_suite_part_list('cam_kessler_test', part_names, errmsg, errflg)
+             write(6, *) 'Available suite parts are:'
+             do nwrite = 1, size(part_names)
+                write(6, *) trim(part_names(nwrite))
+             end do
+             stop
+          end if
+          write(6,*) 'At time step', j, 'in host model Temperature =', state(lchnk)%T(1, pver)
+       end do
         ! write(51,'(a10,i4)') 'nwrite=',nwrite
         ! write(51,'(a20,2i4,f20.13)') 'ncol, pver, ztodt=',ncol, pver, ztodt
         ! write(51,fmt='(a10,(e22.15))') 'rho=',rho(:ncol,:)
@@ -87,12 +87,12 @@ contains
 
       ! Decrease the temperature every time step
 !      state_host%Temperature = state_host%Temperature - 100._kind_phys
-       call CAM_ccpp_physics_timestep_final('cam_kessler_test', errmsg, errflg)
+       call CAM_ccpp_physics_timestep_final('cam_kessler_test', begchunk, endchunk, errmsg, errflg)
 
     end do
 
 
-    call CAM_ccpp_physics_finalize('cam_kessler_test', errmsg, errflg)
+    call CAM_ccpp_physics_finalize('cam_kessler_test', begchunk, endchunk, errmsg, errflg)
     if (errflg /= 0) then
        write(6, *) trim(errmsg)
        write(6,'(a)') 'An error occurred in ccpp_timestep_final, Exiting...'
