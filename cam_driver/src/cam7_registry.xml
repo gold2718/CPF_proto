@@ -130,6 +130,15 @@
     <module>physics_types</module>
   </variable>
 
+  <variable local_name="precl"
+            standard_name="precipitation"
+            state_variable="false">
+    <type kind="kind_phys" units="m/s">real</type>
+    <dimensions>
+      horizontal_dimension
+    </dimensions>
+  </variable>
+
   <variable local_name="timestep"
             standard_name="time_step_for_physics"
             long_name="Model time step"

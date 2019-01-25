@@ -27,14 +27,12 @@
     <type kind="" units="1">integer</type>
     <dimensions>
     </dimensions>
-    <module>ppgrid</module>
   </constant>
 
   <constant local_name="endchunk" standard_name="thread_block_end">
     <type kind="" units="1">integer</type>
     <dimensions>
     </dimensions>
-    <module>ppgrid</module>
   </constant>
 
   <constant local_name="pcnst" standard_name="number_of_tracers">
@@ -112,13 +110,13 @@
 
   <!-- Model Variables -->
 
-  <variable local_name="ncol" standard_name="horizontal_loop_extent">
+  <variable local_name="lblk" standard_name="thread_block_number">
     <type kind="" units="1">integer</type>
     <dimensions>
     </dimensions>
   </variable>
 
-  <variable local_name="lblk" standard_name="thread_block_number">
+  <variable local_name="ncol" standard_name="horizontal_loop_extent">
     <type kind="" units="1">integer</type>
     <dimensions>
     </dimensions>
@@ -163,7 +161,6 @@
     <type kind="len=512" units="1">character</type>
     <dimensions>
     </dimensions>
-    <module>cam_kessler_main</module>
   </variable>
 
   <variable local_name="errflg"
@@ -173,7 +170,6 @@
     <type kind="" units="flag">integer</type>
     <dimensions>
     </dimensions>
-    <module>cam_kessler_main</module>
   </variable>
 
 </model>

@@ -29,6 +29,7 @@ module physics_types
    public state ! The model's physics_state variable
    public tend  ! The model's physics_tend variable
 
+   ! Private interface
    private endrun
 
 !==============================================================================
@@ -302,7 +303,6 @@ module physics_types
 !!
    type physics_state
       integer                                     :: &
-           lchnk,                &! chunk index
            ngrdcol,              &! -- Grid        -- number of active columns (on the grid)
            psetcols=0,           &! --             -- max number of columns set - if subcols = pcols*psubcols, else = pcols
            ncol=0                 ! --             -- sum of nsubcol for all ngrdcols - number of active columns
@@ -351,8 +351,6 @@ module physics_types
            latmapback, &! map from column to unique lat for that column
            lonmapback, &! map from column to unique lon for that column
            cid        ! unique column id
-      integer :: ulatcnt, &! number of unique lats in chunk
-           uloncnt   ! number of unique lons in chunk
 
    end type physics_state
 
@@ -425,7 +423,7 @@ contains
       stop
    end subroutine endrun
 
-   subroutine physics_type_alloc(phys_state, phys_tend, begchunk, endchunk, psetcols)
+   subroutine physics_type_alloc(phys_state, phys_tend, psetcols)
 
       use ppgrid,           only: pcols
 !      use cam_logfile,      only: iulog
@@ -434,7 +432,6 @@ contains
 
       type(physics_state), pointer :: phys_state
       type(physics_tend), pointer :: phys_tend
-      integer, intent(in) :: begchunk, endchunk ! Ignored for CAM7
       integer, intent(in) :: psetcols
 
       integer :: ierr=0
@@ -486,7 +483,6 @@ contains
 
       state_out%psetcols = state_in%psetcols
       state_out%ngrdcol  = state_in%ngrdcol
-      state_out%lchnk    = state_in%lchnk
       state_out%ncol     = state_in%ncol
       state_out%count    = state_in%count
 

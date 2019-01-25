@@ -26,6 +26,13 @@ module physics_types
    public physics_tend_alloc    ! allocate individual components within tend
    public physics_tend_dealloc  ! deallocate individual components within tend
 
+   ! Public variables
+   public :: state
+   public :: tend
+
+   ! Private interface
+   private endrun
+
 !==============================================================================
 !! \section arg_table_physics_state
 !! [ lat ]
@@ -407,13 +414,22 @@ module physics_types
            tw_tnd    ! cumulative boundary flux of total water
    end type physics_tend
 
+   type(physics_state), pointer :: state(:) => NULL()
+   type(physics_tend),  pointer :: tend(:) => NULL()
+
 !===============================================================================
 contains
 !===============================================================================
+
+   subroutine endrun(message)
+      character(len=*), intent(in) :: message
+      write(6, *) trim(message)
+      stop
+   end subroutine endrun
+
    subroutine physics_type_alloc(phys_state, phys_tend, begchunk, endchunk, psetcols)
 
       use ppgrid,           only: pcols
-      use cam_logfile,      only: iulog
 
       implicit none
 
@@ -428,7 +444,7 @@ contains
 
       allocate(phys_state(begchunk:endchunk), stat=ierr)
       if( ierr /= 0 ) then
-         write(iulog,*) 'physics_types: phys_state allocation error = ',ierr
+         write(6,*) 'physics_types: phys_state allocation error = ',ierr
          call endrun('physics_types: failed to allocate physics_state array')
       end if
 
@@ -438,7 +454,7 @@ contains
 
       allocate(phys_tend(begchunk:endchunk), stat=ierr)
       if( ierr /= 0 ) then
-         write(iulog,*) 'physics_types: phys_tend allocation error = ',ierr
+         write(6,*) 'physics_types: phys_tend allocation error = ',ierr
          call endrun('physics_types: failed to allocate physics_tend array')
       end if
 
@@ -545,10 +561,6 @@ contains
 
    subroutine physics_tend_init(tend)
 
-      use shr_kind_mod,     only: r8 => shr_kind_r8
-
-      implicit none
-
       !
       ! Arguments
       !
@@ -575,8 +587,6 @@ contains
 
    subroutine physics_state_alloc(state,lchnk,psetcols)
 
-      use infnan,           only: inf, assignment(=)
-      use phys_grid,        only: get_ncols_p
       use ppgrid,           only: pver
       use constituents,     only: pcnst
 
@@ -591,7 +601,7 @@ contains
 
       state%lchnk    = lchnk
       state%psetcols = psetcols
-      state%ngrdcol  = get_ncols_p(lchnk)  ! Number of grid columns
+      state%ngrdcol  = psetcols  ! Number of grid columns
 
       !----------------------------------
       ! Following variables will be overwritten by sub-column generator, if sub-columns are being used
@@ -705,40 +715,40 @@ contains
       allocate(state%cid(psetcols), stat=ierr)
       if ( ierr /= 0 ) call endrun('physics_state_alloc error: allocation error for state%cid')
 
-      state%lat(:) = inf
-      state%lon(:) = inf
-      state%ulat(:) = inf
-      state%ulon(:) = inf
-      state%ps(:) = inf
-      state%psdry(:) = inf
-      state%phis(:) = inf
-      state%t(:,:) = inf
-      state%u(:,:) = inf
-      state%v(:,:) = inf
-      state%s(:,:) = inf
-      state%omega(:,:) = inf
-      state%pmid(:,:) = inf
-      state%pmiddry(:,:) = inf
-      state%pdel(:,:) = inf
-      state%pdeldry(:,:) = inf
-      state%rpdel(:,:) = inf
-      state%rpdeldry(:,:) = inf
-      state%lnpmid(:,:) = inf
-      state%lnpmiddry(:,:) = inf
-      state%exner(:,:) = inf
-      state%zm(:,:) = inf
-      state%q(:,:,:) = inf
+      state%lat(:) = -999
+      state%lon(:) = -999
+      state%ulat(:) = -999
+      state%ulon(:) = -999
+      state%ps(:) = -999
+      state%psdry(:) = -999
+      state%phis(:) = -999
+      state%t(:,:) = -999
+      state%u(:,:) = -999
+      state%v(:,:) = -999
+      state%s(:,:) = -999
+      state%omega(:,:) = -999
+      state%pmid(:,:) = -999
+      state%pmiddry(:,:) = -999
+      state%pdel(:,:) = -999
+      state%pdeldry(:,:) = -999
+      state%rpdel(:,:) = -999
+      state%rpdeldry(:,:) = -999
+      state%lnpmid(:,:) = -999
+      state%lnpmiddry(:,:) = -999
+      state%exner(:,:) = -999
+      state%zm(:,:) = -999
+      state%q(:,:,:) = -999
 
-      state%pint(:,:) = inf
-      state%pintdry(:,:) = inf
-      state%lnpint(:,:) = inf
-      state%lnpintdry(:,:) = inf
-      state%zi(:,:) = inf
+      state%pint(:,:) = -999
+      state%pintdry(:,:) = -999
+      state%lnpint(:,:) = -999
+      state%lnpintdry(:,:) = -999
+      state%zi(:,:) = -999
 
-      state%te_ini(:) = inf
-      state%te_cur(:) = inf
-      state%tw_ini(:) = inf
-      state%tw_cur(:) = inf
+      state%te_ini(:) = -999
+      state%te_cur(:) = -999
+      state%tw_ini(:) = -999
+      state%tw_cur(:) = -999
 
    end subroutine physics_state_alloc
 
@@ -862,7 +872,6 @@ contains
 
    subroutine physics_tend_alloc(tend,psetcols)
 
-      use infnan, only : inf, assignment(=)
       use ppgrid,           only: pver
       ! allocate the individual tend components
 
@@ -892,12 +901,12 @@ contains
       allocate(tend%tw_tnd(psetcols), stat=ierr)
       if ( ierr /= 0 ) call endrun('physics_tend_alloc error: allocation error for tend%tw_tnd')
 
-      tend%dtdt(:,:) = inf
-      tend%dudt(:,:) = inf
-      tend%dvdt(:,:) = inf
-      tend%flx_net(:) = inf
-      tend%te_tnd(:) = inf
-      tend%tw_tnd(:) = inf
+      tend%dtdt(:,:) = -999
+      tend%dudt(:,:) = -999
+      tend%dvdt(:,:) = -999
+      tend%flx_net(:) = -999
+      tend%te_tnd(:) = -999
+      tend%tw_tnd(:) = -999
 
    end subroutine physics_tend_alloc
 
