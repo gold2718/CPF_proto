@@ -74,7 +74,7 @@
     <module>physconst</module>
   </constant>
 
-  <constant local_name="RGAS" standard_name="gas_constant_dry_air"
+  <constant local_name="RDAIR" standard_name="gas_constant_dry_air"
             long_name="ideal gas constant for dry air">
     <type kind="kind_phys" units="J kg-1 K-1">real</type>
     <dimensions>

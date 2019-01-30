@@ -97,7 +97,7 @@ CONTAINS
     rd    = rd_in
     cp    = cp_in
     lv    = lv_in
-    psl   = psl_in
+    psl   = psl_in/100._r8
     rhoqr = rhoqr_in
 
   end subroutine kessler_init
