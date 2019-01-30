@@ -114,7 +114,6 @@ else(OPENMP)
 endif()
 
 add_library(library ${library_files})
-INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/library)
 
 # Run ccpp_capgen
 set(CAPGEN_CMD "${CCPP_FRAMEWORK}/scripts/ccpp_capgen.py")
