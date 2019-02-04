@@ -93,7 +93,6 @@ else(${CMAKE_VERSION} LESS 3.3)
 endif (${CMAKE_VERSION} LESS 3.3)
 
 INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/simple)
-INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/library)
 INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR})
 
 #------------------------------------------------------------------------------
