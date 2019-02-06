@@ -317,8 +317,8 @@ CONTAINS
   subroutine pres_to_density_dry_run(ncol, nz, pmiddry, temp, rho, errmsg, errflg)
     integer,          intent(in)    :: ncol      ! Number of columns
     integer,          intent(in)    :: nz        ! Number of vertical levels
-    real(kind_phys),  intent(in)    :: pmiddry(:,:) 
-    real(kind_phys),  intent(in)    :: temp(:,:) 
+    real(kind_phys),  intent(in)    :: pmiddry(:,:)
+    real(kind_phys),  intent(in)    :: temp(:,:)
     real(kind_phys),         intent(out)   :: rho(:,:)  ! Dry air density (kg/m^3)
     character(len=*), intent(out)   :: errmsg
     integer,          intent(out)   :: errflg
@@ -430,8 +430,8 @@ CONTAINS
     integer,          intent(in)  :: nz         ! Number of vertical levels
     real(kind_phys),  intent(in)  :: rair  ! gas constant for dry air
     real(kind_phys),  intent(in)  :: cpair ! heat capacity at constant pressure
-    real(kind_phys),  intent(in)  :: pmid(:,:) 
-    real(kind_phys),  intent(out) :: exner(:,:) 
+    real(kind_phys),  intent(in)  :: pmid(:,:)
+    real(kind_phys),  intent(out) :: exner(:,:)
     character(len=*), intent(out) :: errmsg
     integer,          intent(out) :: errflg
 
@@ -688,8 +688,8 @@ CONTAINS
 !!
   subroutine specific_humidity_to_mole_fraction_run(ncol, nz, spec_hum, h2o_mole, errmsg, errflg)
 
-  integer,          intent(in)  :: ncol 
-  integer,          intent(in)  :: nz 
+  integer,          intent(in)  :: ncol
+  integer,          intent(in)  :: nz
   real(kind_phys),  intent(in)  :: spec_hum(:,:)
   real(kind_phys),  intent(out) :: h2o_mole(:,:)
   character(len=*), intent(out) :: errmsg
@@ -748,8 +748,8 @@ CONTAINS
 !!
   subroutine specific_to_relative_humidity_run(ncol, nz, spec_hum, rel_hum, errmsg, errflg)
 
-  integer,          intent(in)  :: ncol 
-  integer,          intent(in)  :: nz 
+  integer,          intent(in)  :: ncol
+  integer,          intent(in)  :: nz
   real(kind_phys),  intent(in)  :: spec_hum(:,:)
   real(kind_phys),  intent(out) :: rel_hum(:,:)
   character(len=*), intent(out) :: errmsg

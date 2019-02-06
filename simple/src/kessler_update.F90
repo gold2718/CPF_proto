@@ -50,7 +50,7 @@ contains
   subroutine kessler_update_timestep_init(temp, temp_prev, ttend_t, errmsg, errflg)
 
     real(r8), intent(in)    :: temp(:,:)
-    real(r8), intent(inout) :: temp_prev(:,:)
+    real(r8), intent(out)   :: temp_prev(:,:)
     real(r8), intent(inout) :: ttend_t(:,:)
     character(len=512),      intent(out)   :: errmsg
     integer,                 intent(out)   :: errflg
@@ -232,7 +232,7 @@ contains
 !!    dimensions = (horizontal_loop_extent, vertical_layer_dimension)
 !!    type = real
 !!    kind = kind_phys
-!!    intent = out
+!!    intent = inout
 !! [ ttend_t ]
 !!    standard_name = total_tendency_of_temperature
 !!   type = real
@@ -314,7 +314,7 @@ contains
       ptend_s(:ncol,k) = (theta(:ncol,k) * exner(:ncol,k) - temp_prev(:ncol,k)) * cpair / dt
       ttend_t(:ncol,k) = ttend_t(:ncol,k) + ptend_s(:ncol,k)/cpair
     end do
- 
+
     ! Kessler is bottom to top
     vert_toa = 30
     vert_surf = 1

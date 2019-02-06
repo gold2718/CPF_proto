@@ -187,9 +187,9 @@ CONTAINS
 
      errflg = 0
      errmsg = ''
-  
+
      ncol = pcols ! Remove this line once ncol is fixed
-  
+
      call wet_to_dry_run(ncol, nz, pdel, pdeldry, qv, qc, qr, errmsg, errflg)
 
   end subroutine kessler_timestep_init
