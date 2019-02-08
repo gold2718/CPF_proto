@@ -8,6 +8,7 @@ module kessler
 
   public :: kessler_run ! Main routine
   public :: kessler_init ! init routine
+  public :: kessler_timestep_init ! init timestep routine
   public :: kessler_finalize ! finalize routine
 
   ! Private module data (constants set at initialization)
@@ -25,44 +26,39 @@ CONTAINS
 !!   units = J/(kgK)
 !!   dimensions = ()
 !!   type = real
-!!   kind = kind_phys
+!!   kind = r8
 !!   intent = in
-!!   optional = F
 !! [ cp_in ]
 !!   standard_name = specific_heat_of_dry_air_at_constant_pressure
 !!   units = J/(kgK)
 !!   dimensions = ()
 !!   type = real
-!!   kind = kind_phys
+!!   kind = r8
 !!   intent = in
-!!   optional = F
 !! [ lv_in ]
 !!   standard_name = latent_heat_of_vaporization_of_water_at_0c
 !!   long_name = latent heat of vaporization of water at 0C
 !!   units = J/kg
 !!   dimensions = ()
 !!   type = real
-!!   kind = kind_phys
+!!   kind = r8
 !!   intent = in
-!!   optional = F
 !! [ psl_in ]
 !!   standard_name = reference_pressure_at_sea_level
 !!   long_name = reference pressure at sea level
 !!   units = mb
 !!   dimensions = ()
 !!   type = real
-!!   kind = kind_phys
+!!   kind = r8
 !!   intent = in
-!!   optional = F
 !! [ rhoqr_in ]
 !!   standard_name = density_of_liquid_water_at_0c
 !!   long_name = density of liquid water at 0C
 !!   units = kg/m^3
 !!   dimensions = ()
 !!   type = real
-!!   kind = kind_phys
+!!   kind = r8
 !!   intent = in
-!!   optional = F
 !! [ errmsg ]
 !!   standard_name = ccpp_error_message
 !!   long_name = Error message for error handling in CCPP
@@ -70,7 +66,6 @@ CONTAINS
 !!   type = character | kind = len=512
 !!   dimensions = ()
 !!   intent = out
-!!   optional = F
 !! [ errflg ]
 !!   standard_name = ccpp_error_flag
 !!   long_name = Error flag for error handling in CCPP
@@ -78,7 +73,6 @@ CONTAINS
 !!   type = integer
 !!   dimensions = ()
 !!   intent = out
-!!   optional = F
 !!
   subroutine kessler_init(rd_in, cp_in, lv_in, psl_in, rhoqr_in, errmsg, errflg)
     ! Set physical constants to be consistent with calling model
@@ -101,6 +95,104 @@ CONTAINS
     rhoqr = rhoqr_in
 
   end subroutine kessler_init
+
+!> \section arg_table_kessler_timestep_init  Argument Table
+!!
+!! [ pcols ]
+!!   standard_name = horizontal_dimension
+!!   units = 1
+!!   dimensions = ()
+!!   type = integer
+!!   intent = in
+!! [ nz ]
+!!   standard_name = vertical_layer_dimension
+!!   long_name = number of vertical levels
+!!   units = 1
+!!   dimensions = ()
+!!   type = integer
+!!   intent = in
+!! [ pdel ]
+!!   standard_name = pressure_thickness
+!!   state_variable = true
+!!   type = real
+!!   kind = r8
+!!   units = Pa
+!!   dimensions = (horizontal_dimension, vertical_layer_dimension)
+!!   intent = in
+!! [ pdeldry ]
+!!   standard_name = pressure_thickness_of_dry_air
+!!   state_variable = true
+!!   type = real
+!!   kind = r8
+!!   units = Pa
+!!   dimensions = (horizontal_dimension, vertical_layer_dimension)
+!!   intent = in
+!! [ qv ]
+!!   standard_name = water_vapor_specific_humidity
+!!   long_name = water vapor
+!!   units = kg kg-1
+!!   dimensions = (horizontal_dimension, vertical_layer_dimension)
+!!   type = real
+!!   kind = r8
+!!   intent = inout
+!! [ qc ]
+!!   standard_name = cloud_liquid_water_mixing_ratio
+!!   units = kg kg-1
+!!   dimensions = (horizontal_dimension, vertical_layer_dimension)
+!!   type = real
+!!   kind = r8
+!!   intent = inout
+!! [ qr ]
+!!   standard_name = rain_water_mixing_ratio
+!!   units = gm/gm
+!!   dimensions = (horizontal_dimension, vertical_layer_dimension)
+!!   type = real
+!!   kind = r8
+!!   intent = inout
+!! [ errmsg ]
+!!   standard_name = ccpp_error_message
+!!   long_name = Error message for error handling in CCPP
+!!   units = 1
+!!   dimensions = ()
+!!   type = character
+!!   kind = len=512
+!!   intent = out
+!! [ errflg ]
+!!   standard_name = ccpp_error_flag
+!!   long_name = Error flag for error handling in CCPP
+!!   units = flag
+!!   dimensions = ()
+!!   type = integer
+!!   intent = out
+!!
+
+!  subroutine kessler_timestep_init(ncol, nz, pdel, pdeldry, qv, qc, qr, errmsg, errflg)
+  subroutine kessler_timestep_init(pcols, nz, pdel, pdeldry, qv, qc, qr, errmsg, errflg)
+  use state_converters, only : wet_to_dry_run
+
+     integer, intent(in)     :: pcols
+!     integer, intent(in)     :: ncol
+     integer, intent(in)     :: nz
+     real(r8), intent(in)    :: pdel(:,:)
+     real(r8), intent(in)    :: pdeldry(:,:)
+     real(r8), intent(inout) :: qv(:,:)
+     real(r8), intent(inout) :: qc(:,:)
+     real(r8), intent(inout) :: qr(:,:)
+
+     integer  :: k
+     integer  :: ncol
+
+     character(len=*), intent(out) :: errmsg
+     integer,          intent(out) :: errflg
+
+     errflg = 0
+     errmsg = ''
+  
+     ncol = pcols ! Remove this line once ncol is fixed
+  
+     call wet_to_dry_run(ncol, nz, pdel, pdeldry, qv, qc, qr, errmsg, errflg)
+
+  end subroutine kessler_timestep_init
 
   !-----------------------------------------------------------------------
   !
@@ -177,7 +269,6 @@ CONTAINS
 !!   dimensions = ()
 !!   type = integer
 !!   intent = in
-!!   optional = F
 !! [ nz ]
 !!   standard_name = vertical_layer_dimension
 !!   long_name = number of vertical levels
@@ -185,86 +276,76 @@ CONTAINS
 !!   dimensions = ()
 !!   type = integer
 !!   intent = in
-!!   optional = F
 !! [ dt ]
 !!   standard_name = time_step_for_physics
 !!   long_name = time step
 !!   units = s
 !!   dimensions = ()
 !!   type = real
-!!   kind = kind_phys
+!!   kind = r8
 !!   intent = in
-!!   optional = F
 !! [ rho ]
 !!   standard_name = dry_air_density
 !!   long_name = dry air density
 !!   units = kg/m^3
-!!   dimensions = (horizontal_loop_extent, vertical_layer_dimension)
+!!   dimensions = (horizontal_dimension, vertical_layer_dimension)
 !!   type = real
-!!   kind = kind_phys
+!!   kind = r8
 !!   intent = in
-!!   optional = F
 !! [ z ]
 !!   standard_name = geopotential_height_above_surface_at_midpoints
 !!   long_name = geopotential height
 !!   units = m
-!!   dimensions = (horizontal_loop_extent, vertical_layer_dimension)
+!!   dimensions = (horizontal_dimension, vertical_layer_dimension)
 !!   type = real
-!!   kind = kind_phys
+!!   kind = r8
 !!   intent = in
-!!   optional = F
 !! [ pk ]
 !!   standard_name = inverse_exner_function_wrt_surface_pressure
 !!   long_name = inverse exner function w.r.t. surface pressure, (ps/p)^(R/cp)
 !!   units = 1
-!!   dimensions = (horizontal_loop_extent, vertical_layer_dimension)
+!!   dimensions = (horizontal_dimension, vertical_layer_dimension)
 !!   type = real
-!!   kind = kind_phys
+!!   kind = r8
 !!   intent = in
-!!   optional = F
 !! [ theta ]
 !!   standard_name = potential_temperature
 !!   long_name = potential temperature
 !!   units = K
-!!   dimensions = (horizontal_loop_extent, vertical_layer_dimension)
+!!   dimensions = (horizontal_dimension, vertical_layer_dimension)
 !!   type = real
-!!   kind = kind_phys
+!!   kind = r8
 !!   intent = inout
-!!   optional = F
 !! [ qv ]
 !!   standard_name = water_vapor_specific_humidity
 !!   long_name = water vapor
 !!   units = kg kg-1
-!!   dimensions = (horizontal_loop_extent, vertical_layer_dimension)
+!!   dimensions = (horizontal_dimension, vertical_layer_dimension)
 !!   type = real
-!!   kind = kind_phys
+!!   kind = r8
 !!   intent = inout
-!!   optional = F
 !! [ qc ]
 !!   standard_name = cloud_liquid_water_mixing_ratio
 !!   units = kg kg-1
-!!   dimensions = (horizontal_loop_extent, vertical_layer_dimension)
+!!   dimensions = (horizontal_dimension, vertical_layer_dimension)
 !!   type = real
-!!   kind = kind_phys
+!!   kind = r8
 !!   intent = inout
-!!   optional = F
 !! [ qr ]
 !!   standard_name = rain_water_mixing_ratio
 !!   units = gm/gm
-!!   dimensions = (horizontal_loop_extent, vertical_layer_dimension)
+!!   dimensions = (horizontal_dimension, vertical_layer_dimension)
 !!   type = real
-!!   kind = kind_phys
+!!   kind = r8
 !!   intent = inout
-!!   optional = F
 !! [ precl ]
 !!   standard_name = precipitation
 !!   long_name = precipitation
 !!   units = m/s
-!!   dimensions = (horizontal_loop_extent)
+!!   dimensions = (horizontal_dimension)
 !!   type = real
-!!   kind = kind_phys
+!!   kind = r8
 !!   intent = out
-!!   optional = F
 !! [ errmsg ]
 !!   standard_name = ccpp_error_message
 !!   long_name = Error message for error handling in CCPP
@@ -273,7 +354,6 @@ CONTAINS
 !!   type = character
 !!   kind = len=512
 !!   intent = out
-!!   optional = F
 !! [ errflg ]
 !!   standard_name = ccpp_error_flag
 !!   long_name = Error flag for error handling in CCPP
@@ -281,7 +361,6 @@ CONTAINS
 !!   dimensions = ()
 !!   type = integer
 !!   intent = out
-!!   optional = F
 !!
   subroutine kessler_run(ncol, nz, dt, rho, z, pk, theta, qv, qc, qr, precl, errmsg, errflg)
 

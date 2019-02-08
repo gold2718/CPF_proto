@@ -18,6 +18,10 @@ module state_converters
   public :: calc_exner_init
   public :: calc_exner_run
 
+  ! Convert between wet and dry
+  public :: wet_to_dry_run
+  public :: dry_to_wet_run
+ 
   ! Private module data (constants set at initialization)
   real(kind_phys), parameter :: unset = 98989.8e99_kind_phys
   real(kind_phys) :: rd = unset    ! gas constant for dry air, J/(kgK)
@@ -436,5 +440,203 @@ CONTAINS
     errmsg = ''
 
   end subroutine calc_exner_run
+
+!> \section arg_table_wet_to_dry_run  Argument Table
+!! [ ncol ]
+!!   standard_name = horizontal_loop_extent
+!!   units = 1
+!!   dimensions = ()
+!!   type = integer
+!!   intent = in
+!! [ nz ]
+!!   standard_name = vertical_layer_dimension
+!!   long_name = number of vertical levels
+!!   units = 1
+!!   dimensions = ()
+!!   type = integer
+!!   intent = in
+!! [ pdel ]
+!!   standard_name = pressure_thickness
+!!   state_variable = true
+!!   type = real
+!!   kind = kind_phys
+!!   units = Pa
+!!   dimensions = (horizontal_dimension, vertical_layer_dimension)
+!!   intent = in
+!! [ pdeldry ]
+!!   standard_name = pressure_thickness_of_dry_air
+!!   state_variable = true
+!!   type = real
+!!   kind = kind_phys
+!!   units = Pa
+!!   dimensions = (horizontal_dimension, vertical_layer_dimension)
+!!   intent = in
+!! [ qv ]
+!!   standard_name = water_vapor_specific_humidity
+!!   long_name = water vapor
+!!   units = kg kg-1
+!!   dimensions = (horizontal_dimension, vertical_layer_dimension)
+!!   type = real
+!!   kind = kind_phys
+!!   intent = inout
+!! [ qc ]
+!!   standard_name = cloud_liquid_water_mixing_ratio
+!!   units = kg kg-1
+!!   dimensions = (horizontal_dimension, vertical_layer_dimension)
+!!   type = real
+!!   kind = kind_phys
+!!   intent = inout
+!!   optional = T
+!! [ qr ]
+!!   standard_name = rain_water_mixing_ratio
+!!   units = gm/gm
+!!   dimensions = (horizontal_dimension, vertical_layer_dimension)
+!!   type = real
+!!   kind = kind_phys
+!!   intent = inout
+!!   optional = T
+!! [ errmsg ]
+!!    standard_name = ccpp_error_message
+!!    long_name = Error message for error handling in CCPP
+!!    units = 1
+!!    dimensions = ()
+!!    type = character | kind = len=512
+!!    intent = out
+!! [ errflg ]
+!!    standard_name = ccpp_error_flag
+!!    long_name = Error flag for error handling in CCPP
+!!    units = flag
+!!    dimensions = ()
+!!    type = integer
+!!    intent = out
+!!    optional = F
+!!
+
+  subroutine wet_to_dry_run(ncol, nz, pdel, pdeldry, qv, qc, qr, errmsg, errflg)
+
+     integer, intent(in)     :: ncol
+     integer, intent(in)     :: nz
+     real(kind_phys), intent(in)    :: pdel(:,:)
+     real(kind_phys), intent(in)    :: pdeldry(:,:)
+     real(kind_phys), intent(inout) :: qv(:,:)
+     real(kind_phys), intent(inout),optional :: qc(:,:)
+     real(kind_phys), intent(inout),optional :: qr(:,:)
+     character(len=*), intent(out) :: errmsg
+     integer,          intent(out) :: errflg
+
+     integer  :: k
+     real(kind_phys) :: w_to_d(ncol)
+
+     errflg = 0
+     errmsg = ''
+
+     do k=1,nz
+       w_to_d(:ncol) = pdel(:ncol,k)/pdeldry(:ncol,k)
+       qv(:ncol,k) = qv(:ncol,k)*w_to_d(:ncol)
+       if (present(qc)) qc(:ncol,k) = qc(:ncol,k)*w_to_d(:ncol)
+       if (present(qr)) qr(:ncol,k) = qr(:ncol,k)*w_to_d(:ncol)
+     end do
+
+
+  end subroutine wet_to_dry_run
+
+!> \section arg_table_dry_to_wet_run  Argument Table
+!! [ ncol ]
+!!   standard_name = horizontal_loop_extent
+!!   units = 1
+!!   dimensions = ()
+!!   type = integer
+!!   intent = in
+!! [ nz ]
+!!   standard_name = vertical_layer_dimension
+!!   long_name = number of vertical levels
+!!   units = 1
+!!   dimensions = ()
+!!   type = integer
+!!   intent = in
+!! [ pdel ]
+!!   standard_name = pressure_thickness
+!!   state_variable = true
+!!   type = real
+!!   kind = kind_phys
+!!   units = Pa
+!!   dimensions = (horizontal_dimension, vertical_layer_dimension)
+!!   intent = in
+!! [ pdeldry ]
+!!   standard_name = pressure_thickness_of_dry_air
+!!   state_variable = true
+!!   type = real
+!!   kind = kind_phys
+!!   units = Pa
+!!   dimensions = (horizontal_dimension, vertical_layer_dimension)
+!!   intent = in
+!! [ qv ]
+!!   standard_name = water_vapor_specific_humidity
+!!   long_name = water vapor
+!!   units = kg kg-1
+!!   dimensions = (horizontal_dimension, vertical_layer_dimension)
+!!   type = real
+!!   kind = kind_phys
+!!   intent = inout
+!! [ qc ]
+!!   standard_name = cloud_liquid_water_mixing_ratio
+!!   units = kg kg-1
+!!   dimensions = (horizontal_dimension, vertical_layer_dimension)
+!!   type = real
+!!   kind = kind_phys
+!!   intent = inout
+!!   optional = T
+!! [ qr ]
+!!   standard_name = rain_water_mixing_ratio
+!!   units = gm/gm
+!!   dimensions = (horizontal_dimension, vertical_layer_dimension)
+!!   type = real
+!!   kind = kind_phys
+!!   intent = inout
+!!   optional = T
+!! [ errmsg ]
+!!    standard_name = ccpp_error_message
+!!    long_name = Error message for error handling in CCPP
+!!    units = 1
+!!    dimensions = ()
+!!    type = character | kind = len=512
+!!    intent = out
+!! [ errflg ]
+!!    standard_name = ccpp_error_flag
+!!    long_name = Error flag for error handling in CCPP
+!!    units = flag
+!!    dimensions = ()
+!!    type = integer
+!!    intent = out
+!!
+
+  subroutine dry_to_wet_run(ncol, nz, pdel, pdeldry, qv, qc, qr, errmsg, errflg)
+
+     integer, intent(in)     :: ncol
+     integer, intent(in)     :: nz
+     real(kind_phys), intent(in)    :: pdel(:,:)
+     real(kind_phys), intent(in)    :: pdeldry(:,:)
+     real(kind_phys), intent(inout) :: qv(:,:)
+     real(kind_phys), intent(inout),optional :: qc(:,:)
+     real(kind_phys), intent(inout),optional :: qr(:,:)
+     character(len=*), intent(out) :: errmsg
+     integer,          intent(out) :: errflg
+
+     integer  :: k
+     real(kind_phys) :: d_to_w(ncol)
+
+     errflg = 0
+     errmsg = ''
+
+     do k=1,nz
+       d_to_w(:ncol) = pdeldry(:ncol,k)/pdel(:ncol,k)
+       qv(:ncol,k) = qv(:ncol,k)*d_to_w(:ncol)
+       if (present(qc)) qc(:ncol,k) = qc(:ncol,k)*d_to_w(:ncol)
+       if (present(qr)) qr(:ncol,k) = qr(:ncol,k)*d_to_w(:ncol)
+     end do
+
+
+  end subroutine dry_to_wet_run
+
 
 end module state_converters

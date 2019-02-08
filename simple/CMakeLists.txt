@@ -71,8 +71,9 @@ set(BASE_FILES
   )
 set(SCHEMES
   ./src/kessler.F90
-  ./src/converters.F90
-#      ./src/kessler_update.F90
+  ./src/state_converters.F90
+  ./src/kessler_update.F90
+  ./src/geopotential.F90
   )
 
 if (${CMAKE_Fortran_COMPILER_ID} STREQUAL "GNU")

@@ -15,10 +15,14 @@ MODULE physconst
    real(R8),parameter :: CPDAIR    = 1.00464e3_R8              ! specific heat of dry air   ~ J/kg/K
    real(R8),parameter :: RGAS      = AVOGADRO*BOLTZMANN        ! Universal gas constant ~ J/K/kmole
    real(R8),parameter :: MWDAIR    = 28.966_R8                 ! molecular weight dry air ~ kg/kmole
+   real(R8),parameter :: MWWV      = 18.016_R8                 ! molecular weight water vapor 
+   real(R8),parameter :: RWV       = RGAS/MWWV                 ! water vapor gas constant  ~ J/K/kg
    real(R8),parameter :: RDAIR     = RGAS/MWDAIR               ! Dry air gas constant     ~ J/K/kg
+   real(R8),parameter :: ZVIR      = RWV/RDAIR-1.0_R8          ! RWV/RDAIR - 1.0
    real(R8),parameter :: LATVAP    = 2.501e6_R8                ! latent heat of evaporation ~ J/kg
    real(R8),parameter :: PSTD      = 101325.0_R8               ! standard pressure ~ pascals
    real(R8),parameter :: RHOFW     = 1.000e3_R8                ! density of fresh water     ~ kg/m^3
+   real(R8),parameter :: GRAVIT    = 9.80616_R8                ! acceleration of gravity ~ m/s^2
 
 !-----------------------------------------------------------------------------
 

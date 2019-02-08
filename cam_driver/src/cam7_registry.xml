@@ -96,6 +96,24 @@
     <module>physconst</module>
   </constant>
 
+  <constant local_name="GRAVIT"
+            standard_name="acceleration_of_gravity"
+            long_name="gravity">
+    <type kind="kind_phys" units="m s-2">real</type>
+    <dimensions>
+    </dimensions>
+    <module>physconst</module>
+  </constant>
+
+  <constant local_name="ZVIR"
+            standard_name="ratio_of_dry_air_to_water_vapor_gas_constants_minus_one"
+            long_name="(Rwv/Rdair) - 1.0">
+    <type kind="kind_phys" units="1">real</type>
+    <dimensions>
+    </dimensions>
+    <module>physconst</module>
+  </constant>
+
   <!-- Model Variables -->
 
   <variable local_name="col_start" standard_name="horizontal_loop_begin">

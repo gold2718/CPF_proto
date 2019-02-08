@@ -1,150 +1,318 @@
 module kessler_update
 
 use machine, only: r8 => kind_phys
+use geopotential, only: geopotential_t
 
 implicit none
 private
-public :: kessler_update_init, kessler_update_run, kessler_update_finalize
+public :: kessler_update_timestep_init, kessler_update_run, kessler_update_finalize
 
 contains
 
-!> \section arg_table_kessler_update_init  Argument Table
-!! | local_name | standard_name                                    | long_name                               | units       | rank | type      | kind      | intent | optional |
-!! |------------|--------------------------------------------------|-----------------------------------------|-------------|------|-----------|-----------|--------|----------|
-!! | pver       | maximum_vertical_extent                          | maximum_vertical_extent                 | none        |    0 | integer   |           | in     | F        |
-!! | pcols      | maximum_horizontal_extent                        | number of columns                       | none        |    0 | integer   |           | in     | F        |
-!! | t_prev     | air_temperature_prev                             | previous air temperature                | K           |    2 | real      | kind_phys | out    | F        |
-!! | qc_prev    | mass_fraction_of_cloud_liquid_water_in_air_prev  | previous cloud_liquid_water_in_air      | kg kg-1     |    2 | real      | kind_phys | out    | F        |
-!! | qr_prev    | mass_fraction_of_rain_in_air_prev                | previous rain in air                    | kg kg-1     |    2 | real      | kind_phys | out    | F        |
-!! | qv_prev    | mass_fraction_of_water_in_air_prev               | previous water in air                   | kg kg-1     |    2 | real      | kind_phys | out    | F        |
-!! | precl_prev | precipitation_prev                               | previous precipitation                  | m/s         |    1 | real      | kind_phys | out    | F        |
-!! | errmsg     | error_message                                    | CCPP error message                      | none        |    0 | character | len=512   | out    | F        |
-!! | errflg     | error_flag                                       | CCPP error flag                         | flag        |    0 | integer   |           | out    | F        |
+!> \section arg_table_kessler_update_timestep_init  Argument Table
+!! [ temp_prev ]
+!!   standard_name = temperature_from_previous_timestep
+!!   units = K
+!!   dimensions = (horizontal_dimension, vertical_layer_dimension)
+!!   type = real
+!!   kind = kind_phys
+!!   intent = out
+!! [ ttend_t ]
+!!   standard_name = total_tendency_of_temperature
+!!   units = K s-1
+!!   dimensions = (horizontal_dimension, vertical_layer_dimension)
+!!   type = real
+!!   kind = kind_phys
+!!   intent = out
+!! [ errmsg ]
+!!   standard_name = ccpp_error_message
+!!   long_name = Error message for error handling in CCPP
+!!   units = 1
+!!   type = character | kind = len=512
+!!   dimensions = ()
+!!   intent = out
+!! [ errflg ]
+!!   standard_name = ccpp_error_flag
+!!   long_name = Error flag for error handling in CCPP
+!!   units = flag
+!!   type = integer
+!!   dimensions = ()
+!!   intent = out
 !!
+  subroutine kessler_update_timestep_init(temp_prev, ttend_t, errmsg, errflg)
 
-  subroutine kessler_update_init(pcols, pver, t_prev, qv_prev, qc_prev, qr_prev, precl_prev, errmsg, errflg)
-    integer, intent(in)     :: pcols
-    integer, intent(in)     :: pver
-    real(r8), intent(out) :: t_prev(pcols,pver)
-    real(r8), intent(out) :: qv_prev(pcols,pver)
-    real(r8), intent(out) :: qc_prev(pcols,pver)
-    real(r8), intent(out) :: qr_prev(pcols,pver)
-    real(r8), intent(out) :: precl_prev(pcols)
-
+    real(r8), intent(out) :: temp_prev(:,:)
+    real(r8), intent(out) :: ttend_t(:,:)
     character(len=512),      intent(out)   :: errmsg
     integer,                 intent(out)   :: errflg
 
-
-
-!   Initialize t, qv, qc and qr previous to zero
-    t_prev(:,:)     = 0._r8
-    qv_prev(:,:)    = 0._r8
-    qc_prev(:,:)    = 0._r8
-    qr_prev(:,:)    = 0._r8
-    precl_prev(:)   = 0._r8
+!   Initialize the previous temperature and its tendency to zero
+    temp_prev(:,:)  = 0._r8
+    ttend_t(:,:)    = 0._r8
 
     errmsg = ' '
     errflg = 0
 
-  end subroutine kessler_update_init
+  end subroutine kessler_update_timestep_init
 
 !> \section arg_table_kessler_update_run  Argument Table
-!! | local_name | standard_name                                                | long_name                               | units       | rank | type      | kind      | intent | optional |
-!! |------------|--------------------------------------------------------------|-----------------------------------------|-------------|------|-----------|-----------|--------|----------|
-!! | pcols      | maximum_horizontal_extent                                    | number of columns                       | none        |    0 | integer   |           | in     | F        |
-!! | pver       | maximum_vertical_extent                                      | maximum_vertical_exten                  | none        |    0 | integer   |           | in     | F        |
-!! | ncol       | horizontal_extent                                            | number of columns                       | none        |    0 | integer   |           | in     | F        |
-!! | rair       | dry_air_gas_constant                                         | dry_air_gas_constant                    | J/K/kg      |    0 | real      | kind_phys | in     | F        |
-!! | cpair      | specific_heat_of_dry_air                                     | specific_heat_of_dry_air                | J/K/kg      |    0 | real      | kind_phys | in     | F        |
-!! | exner      | exner_function                                               | exner function                          | none        |    2 | real      | kind_phys | in     | F        |
-!! | ztodt      | physics_time_step                                            | physics_time_step                       | s           |    0 | real      | kind_phys | in     | F        |
-!! | th         | air_potential_temperature                                    | air_potential_temperature               | K           |    2 | real      | kind_phys | in     | F        |
-!! | qv         | mass_fraction_of_water_in_air                                | mass_fraction_of_water_in_air           | kg kg-1     |    2 | real      | kind_phys | in     | F        |
-!! | qc         | mass_fraction_of_cloud_liquid_water_in_air                   | cloud_liquid_water_in_air               | kg kg-1     |    2 | real      | kind_phys | in     | F        |
-!! | qr         | mass_fraction_of_rain_in_air                                 | rain in air                             | kg kg-1     |    2 | real      | kind_phys | in     | F        |
-!! | precl      | precipitation                                                | precipitation                           | m/s         |    1 | real      | kind_phys | in     | F        |
-!! | t_prev     | air_temperature_prev                                         | previous air temperature                | K           |    2 | real      | kind_phys | inout  | F        |
-!! | qv_prev    | mass_fraction_of_water_in_air_prev                           | previous water in air                   | kg kg-1     |    2 | real      | kind_phys | inout  | F        |
-!! | qc_prev    | mass_fraction_of_cloud_liquid_water_in_air_prev              | previous cloud_liquid_water_in_air      | kg kg-1     |    2 | real      | kind_phys | inout  | F        |
-!! | qr_prev    | mass_fraction_of_rain_in_air_prev                            | previous rain in air                    | kg kg-1     |    2 | real      | kind_phys | inout  | F        |
-!! | precl_prev | precipitation_prev                                           | previous precipitation                  | m/s         |    1 | real      | kind_phys | inout  | F        |
-!! | ttend_t    | total_tendency_of_air_temperature                            | total_tendency_of_air_temperature       | K           |    2 | real      | kind_phys | inout  | F        |
-!! | ttend_qv   | total_tendency_of_mass_fraction_of_water_in_air              | total tendency of_water in air          | kg kg-1     |    2 | real      | kind_phys | inout  | F        |
-!! | ttend_qc   | total_tendency_of_mass_fraction_of_cloud_liquid_water_in_air | total tendency of_water in air          | kg kg-1     |    2 | real      | kind_phys | inout  | F        |
-!! | ttend_qr   | total_tendency_of_mass_fraction_of_rain_in_air               | total tendency of rain in air           | kg kg-1     |    2 | real      | kind_phys | inout  | F        |
-!! | errmsg     | error_message                                                | CCPP error message                      | none        |    0 | character | len=512   | out    | F        |
-!! | errflg     | error_flag                                                   | CCPP error flag                         | flag        |    0 | integer   |           | out    | F        |
+!! [ nz ]
+!!    standard_name = vertical_layer_dimension
+!!    long_name = number of vertical levels
+!!    units = 1
+!!    dimensions = ()
+!!    type = integer
+!!    intent = in
+!! [ pcols ]
+!!    standard_name = horizontal_dimension
+!!    units = 1
+!!    dimensions = ()
+!!    type = integer
+!!    intent = in
+!! [ ncol ]
+!!    standard_name = horizontal_loop_extent
+!!    long_name = number of columns
+!!    units = 1
+!!    dimensions = ()
+!!    type = integer
+!!    intent = in
+!! [ gravit ]
+!!    standard_name = acceleration_of_gravity
+!!    units = m s-2
+!!    dimensions = ()
+!!    type = real
+!!    kind = kind_phys
+!!    intent = in
+!! [ cpair ]
+!!    standard_name = specific_heat_of_dry_air_at_constant_pressure
+!!    units = J kg-1 K-1
+!!    dimensions = ()
+!!    type = real
+!!    kind = kind_phys
+!!    intent = in
+!! [ rair ]
+!!    standard_name = gas_constant_dry_air
+!!    units = J kg-1 K-1
+!!    dimensions = ()
+!!    type = real
+!!    kind = kind_phys
+!!    intent = in
+!! [ zvir ]
+!!    standard_name = ratio_of_dry_air_to_water_vapor_gas_constants_minus_one
+!!    units = -1
+!!    dimensions = ()
+!!    type = real
+!!    kind = kind_phys
+!!    intent = in
+!! [ phis ]
+!!   standard_name = surface_geopotential
+!!   state_variable = true
+!!   type = real
+!!   kind = kind_phys
+!!   units = m2 s-2
+!!   dimensions = (horizontal_dimension)
+!!    intent = in
+!! [ temp ]
+!!   standard_name = temperature
+!!   state_variable = true
+!!   type = real
+!!   kind = kind_phys
+!!   units = K
+!!   dimensions = (horizontal_dimension, vertical_layer_dimension)
+!!    intent = in
+!! [ lnpint ]
+!!   standard_name = ln_air_pressure_at_interface
+!!   state_variable = true
+!!   type = real
+!!   kind = kind_phys
+!!   units = ln(Pa)
+!!   dimensions = (horizontal_dimension, vertical_level_dimension)
+!!    intent = in
+!! [ lnpmid ]
+!!   standard_name = natural_log_of_air_pressure
+!!   state_variable = true
+!!   type = real
+!!   kind = kind_phys
+!!   units = pmid
+!!   dimensions = (horizontal_dimension, vertical_layer_dimension)
+!!    intent = in
+!! [ pint ]
+!!   standard_name = air_pressure_at_interface
+!!   state_variable = true
+!!   type = real
+!!   kind = kind_phys
+!!   units = Pa
+!!   dimensions = (horizontal_dimension, vertical_level_dimension)
+!!    intent = in
+!! [ pmid ]
+!!   standard_name = air_pressure
+!!   long_name = Midpoint air pressure
+!!   state_variable = true
+!!   type = real
+!!   kind = kind_phys
+!!   units = Pa
+!!   dimensions = (horizontal_dimension, vertical_layer_dimension)
+!!    intent = in
+!! [ pdel ]
+!!   standard_name = pressure_thickness
+!!   state_variable = true
+!!   type = real
+!!   kind = kind_phys
+!!   units = Pa
+!!   dimensions = (horizontal_dimension, vertical_layer_dimension)
+!!    intent = in
+!! [ rpdel ]
+!!   standard_name = reciprocal_of_pressure_thickness
+!!   state_variable = true
+!!   type = real
+!!   kind = kind_phys
+!!   units = Pa-1
+!!   dimensions = (horizontal_dimension, vertical_layer_dimension)
+!!    intent = in
+!! [ qc ]
+!!   standard_name = water_vapor_specific_humidity
+!!   state_variable = true
+!!   type = real
+!!   kind = kind_phys
+!!   units = kg kg-1
+!!   dimensions = (horizontal_dimension, vertical_layer_dimension)
+!!    intent = in
+!! [ zi ]
+!!   standard_name = geopotential_height_above_surface_at_interfaces
+!!   state_variable = true
+!!   type = real
+!!   kind = kind_phys
+!!   units = m
+!!   dimensions = (horizontal_dimension, vertical_level_dimension)
+!!    intent = inout
+!! [ zm ]
+!!   standard_name = geopotential_height_above_surface_at_midpoints
+!!   state_variable = true
+!!   type = real
+!!   kind = kind_phys
+!!   units = m
+!!   dimensions = (horizontal_loop_extent, vertical_layer_dimension)
+!!   intent = inout
+!! [ temp_prev ]
+!!    standard_name = temperature_from_previous_timestep
+!!    units = K
+!!    dimensions = (horizontal_loop_extent, vertical_layer_dimension)
+!!    type = real
+!!    kind = kind_phys
+!!    intent = out
+!! [ ttend_t ]
+!!    standard_name = total_tendency_of_temperature
+!!   type = real
+!!   kind = kind_phys
+!!   units = K s-1
+!!   dimensions = (horizontal_loop_extent, vertical_layer_dimension)
+!!    intent = out
+!! [ st_energy ]
+!!   standard_name = dry_static_energy_content_of_atmosphere_layer
+!!   long_name = Dry static energy
+!!   state_variable = true
+!!   type = real
+!!   kind = kind_phys
+!!   units = J m-2
+!!   dimensions = (horizontal_loop_extent, vertical_layer_dimension)
+!!    intent = inout
+!! [ errmsg ]
+!!   standard_name = ccpp_error_message
+!!   long_name = Error message for error handling in CCPP
+!!   units = 1
+!!   type = character | kind = len=512
+!!   dimensions = ()
+!!   intent = out
+!! [ errflg ]
+!!   standard_name = ccpp_error_flag
+!!   long_name = Error flag for error handling in CCPP
+!!   units = flag
+!!   type = integer
+!!   dimensions = ()
+!!   intent = out
 !!
-  subroutine kessler_update_run(pcols, pver, ncol, rair, cpair, exner, ztodt, th, qv, qc, qr, precl, t_prev, qv_prev,  qc_prev, qr_prev, precl_prev, ttend_t, ttend_qv, ttend_qc, ttend_qr, errmsg, errflg )
+  subroutine kessler_update_run(nz, pcols, ncol, gravit, cpair, rair, zvir, phis, temp, &
+                 lnpint, lnpmid, pint, pmid, pdel, rpdel, qc,  &
+                 zi, zm, temp_prev, ttend_t, st_energy, errmsg, errflg )
 
+    integer, intent(in)     :: nz
     integer, intent(in)     :: pcols
-    integer, intent(in)     :: pver
     integer, intent(in)     :: ncol
-    real(r8), intent(in)    :: rair
+    real(r8), intent(in)    :: gravit
     real(r8), intent(in)    :: cpair
-    real(r8), intent(in)    :: exner(pcols,pver)
-    real(r8), intent(in)    :: ztodt
-    real(r8), intent(in)    :: th(pcols,pver)   ! Potential temp.
-    real(r8), intent(in)    :: qv(pcols,pver)
-    real(r8), intent(in)    :: qc(pcols,pver)
-    real(r8), intent(in)    :: qr(pcols,pver)
-    real(r8), intent(in)    :: precl(pcols)
+    real(r8), intent(in)    :: rair
+    real(r8), intent(in)    :: zvir
+    real(r8), intent(in)    :: phis(:)
+    real(r8), intent(in)    :: temp(:,:)   ! temperature
+    real(r8), intent(in)    :: lnpint(:,:)
+    real(r8), intent(in)    :: lnpmid(:,:)
+    real(r8), intent(in)    :: pint(:,:)
+    real(r8), intent(in)    :: pmid(:,:)
+    real(r8), intent(in)    :: pdel(:,:)
+    real(r8), intent(in)    :: rpdel(:,:)
+    real(r8), intent(in)    :: qc(:,:)
 
-    real(r8), intent(inout) :: t_prev(pcols,pver)
-    real(r8), intent(inout) :: qv_prev(pcols,pver)
-    real(r8), intent(inout) :: qc_prev(pcols,pver)
-    real(r8), intent(inout) :: qr_prev(pcols,pver)
-    real(r8), intent(inout) :: precl_prev(pcols)
-
-    real(r8), intent(inout) :: ttend_t(pcols,pver)
-    real(r8), intent(inout) :: ttend_qc(pcols,pver)
-    real(r8), intent(inout) :: ttend_qv(pcols,pver)
-    real(r8), intent(inout) :: ttend_qr(pcols,pver)
+    real(r8), intent(inout) :: zi(:,:)
+    real(r8), intent(inout) :: zm(:,:)
+    real(r8), intent(inout) :: temp_prev(:,:)
+    real(r8), intent(inout) :: ttend_t(:,:)
+    real(r8), intent(inout) :: st_energy(:,:)
 
     character(len=512),      intent(out)   :: errmsg
     integer,                 intent(out)   :: errflg
 
     integer                 :: k, rk
+    integer                 :: vert_surf, vert_toa
+    real(r8)                :: rairv(pcols,nz)
+    real(r8)                :: zvirv(pcols,nz)
 
     errmsg = ' '
     errflg = 0
 
+    rairv(:,:) = rair
+    zvirv(:,:) = zvir
+
     ! Back out tendencies from updated fields
-    do k = 1, pver
-      rk = pver - k + 1
-      ttend_t(:ncol,k) = (th(:ncol,rk)*exner(:ncol,k) - t_prev(:ncol,k)) * cpair / ztodt
-      ttend_qv(:ncol,k) = (qv(:ncol,rk) - qv_prev(:ncol,rk)) / ztodt
-      ttend_qc(:ncol,k) = (qc(:ncol,rk) - qc_prev(:ncol,rk)) / ztodt
-      ttend_qr(:ncol,k) = (qr(:ncol,rk) - qr_prev(:ncol,rk)) / ztodt
+    do k = 1, nz
+      ttend_t(:ncol,k) = ttend_t(:ncol,k) + (temp(:ncol,k) - temp_prev(:ncol,k))
+    end do
+ 
+    ! Kessler is bottom to top
+    vert_toa = 30
+    vert_surf = 1
+
+    call geopotential_t  ( nz, nz+1, .true., vert_surf, vert_toa, &
+            lnpint,    lnpmid,    pint  , pmid  , pdel  , rpdel  , &
+            temp     , qc, rairv, gravit  , zvirv              , &
+            zi    , zm      , ncol         )
+
+    do k = 1, nz
+      st_energy(:ncol,k) = temp(:ncol,k)*cpair+gravit*zm(:ncol,k)+phis(:ncol)
     end do
 
-    ! Update precip  -- CAC DO WE NEED TO DO THIS???
-!    if (ncol < pcols) then
-!      precl(ncol+1:pcols) = 0.0_r8
-!      qc(ncol+1:pcols,:)  = 0.0_r8
-!      qr(ncol+1:pcols,:)  = 0.0_r8
-!    end if
 
-!    surf_state%precl(:ncol) = surf_state%precl(:ncol) + precl(:ncol)  -- CAC - what do I do here?
+!    surf_state%precl(:ncol) = surf_state%precl(:ncol) + precl(:ncol)  ! KEEPING THIS HERE AS A REMINDER
 
     ! Set the previous q values to the current q
-    t_prev(:,:)     = th(:ncol,:)*exner(:ncol,:)  ! NOT SURE WHAT TO PUT HERE -- CAC -- PROBABLY NOT CORRECT
-    qv_prev(:,:)    = qv(:,:)
-    qc_prev(:,:)    = qc(:,:)
-    qr_prev(:,:)    = qr(:,:)
-!     precl_prev(:)   = precl(:) - ?????
-
-!    ! Output liquid tracers
-!    call outfld(cnst_name(ixcldliq), qc(:,pver:1:-1), pcols, lchnk)
-!    call outfld(cnst_name(ixrain  ), qr(:,pver:1:-1), pcols, lchnk)
+    temp_prev(:,:)     = temp(:,:)
 
   end subroutine kessler_update_run
 
 !> \section arg_table_kessler_update_finalize  Argument Table
-!! | local_name | standard_name                                                | long_name                               | units       | rank | type      | kind      | intent | optional |
-!! |------------|--------------------------------------------------------------|-----------------------------------------|-------------|------|-----------|-----------|--------|----------|
-!! | errmsg     | error_message                                                | CCPP error message                      | none        |    0 | character | len=512   | out    | F        |
-!! | errflg     | error_flag                                                   | CCPP error flag                         | flag        |    0 | integer   |           | out    | F        |
+!! [ errmsg ]
+!!   standard_name = ccpp_error_message
+!!   long_name = Error message for error handling in CCPP
+!!   units = 1
+!!   type = character | kind = len=512
+!!   dimensions = ()
+!!   intent = out
+!! [ errflg ]
+!!   standard_name = ccpp_error_flag
+!!   long_name = Error flag for error handling in CCPP
+!!   units = flag
+!!   type = integer
+!!   dimensions = ()
+!!   intent = out
 !!
   subroutine kessler_update_finalize(errmsg, errflg)
 

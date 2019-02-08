@@ -27,7 +27,7 @@ contains
     integer                         :: i, j, k, rk
     integer                         :: ierr
     integer                         :: col_start, col_end
-    integer                         :: ncol, nwrite, pver_in, nwrite_in
+    integer                         :: ncol, nwrite, pver_in, nwrite_in, nstep
     real(kind_phys)                 :: ztodt
     real(kind_phys)                 :: precl(pcols)
     real(kind_phys)                 :: scratch(pcols,pver)
@@ -36,22 +36,23 @@ contains
     character(len=128), allocatable :: part_names(:)
     integer                         :: errflg
     real(kind_phys)                 :: pmiddry_top2bot(pcols,pver)
+    real(kind_phys)                 :: pint_top2bot(pcols,pverp)
     real(kind_phys)                 :: pmid_top2bot(pcols,pver)
     real(kind_phys)                 :: pdel_top2bot(pcols,pver)
+    real(kind_phys)                 :: rpdel_top2bot(pcols,pver)
     real(kind_phys)                 :: pdeldry_top2bot(pcols,pver)
+    real(kind_phys)                 :: zi_top2bot(pcols,pverp)
     real(kind_phys)                 :: zm_top2bot(pcols,pver)
     real(kind_phys)                 :: exner_top2bot(pcols,pver)
     real(kind_phys)                 :: t_top2bot(pcols,pver)
     real(kind_phys)                 :: s_top2bot(pcols,pver)
     real(kind_phys)                 :: q_top2bot(pcols,pver,pcnst)
-    real(kind_phys)                 :: wet_to_dry(pcols)
-    real(kind_phys)                 :: dry_to_wet(pcols)
+    real(kind_phys)                 :: lnpint_top2bot(pcols,pverp)
+    real(kind_phys)                 :: lnpmid_top2bot(pcols,pver)
+    real(kind_phys)                 :: ttend_top2bot(pcols,pver)
 
     ! Allocate the host variables
     call physics_type_alloc(state, tend, pcols)
-
-    !  open(unit=50, file='../src/fort.50')
-    !  read(50, fmt='(2i4)') icols, iver
 
     ! Use the suite information to setup the run
     call CAM_ccpp_physics_initialize('cam_kessler_test', precl, errmsg, errflg)
@@ -61,47 +62,60 @@ contains
     end if
 
     ! loop over all time steps
-    nwrite=0
+    nstep=0
     do j = 1, ntimes
        ncol = pcols
        read(60,fmt='(a10,i4)') string(1:8),nwrite_in
        read(60,fmt='(a20,2i4,f20.13)') string(1:19),ncol, pver_in, ztodt
-       read(60,fmt='(a20,(e22.15))') string(1:20),pmiddry_top2bot(:ncol,:pver_in)
-       read(60,fmt='(a20,(e22.15))') string(1:20),pmid_top2bot(:ncol,:pver_in)
-       read(60,fmt='(a20,(e22.15))') string,pdel_top2bot(:ncol,:pver_in)
-       read(60,fmt='(a20,(e22.15))') string,pdeldry_top2bot(:ncol,:pver_in)
-       read(60,fmt='(a20,(e22.15))') string,exner_top2bot(:ncol,:pver_in)
-       read(60,fmt='(a20,(e22.15))') string,t_top2bot(:ncol,:pver_in)
-       read(60,fmt='(a20,(e22.15))') string,s_top2bot(:ncol,:pver_in)
-       read(60,fmt='(a20,(e22.15))') string,q_top2bot(:ncol,:pver_in,1)
-       read(60,fmt='(a20,(e22.15))') string,q_top2bot(:ncol,:pver_in,2)
-       read(60,fmt='(a20,(e22.15))') string,q_top2bot(:ncol,:pver_in,3)
-       read(60,fmt='(a20,(e22.15))') string,precl(:ncol)
-       call CAM_ccpp_physics_timestep_initial('cam_kessler_test', precl, errmsg, errflg)
-       col_start = 1
-       col_end = ncol
+       read(60,fmt='(a20,(e25.18))') string(1:20),pmiddry_top2bot(:ncol,:pver_in)
+       read(60,fmt='(a20,(e25.18))') string(1:20),pint_top2bot(:ncol,:pverp)
+       read(60,fmt='(a20,(e25.18))') string(1:20),pmid_top2bot(:ncol,:pver_in)
+       read(60,fmt='(a20,(e25.18))') string,pdel_top2bot(:ncol,:pver_in)
+       read(60,fmt='(a20,(e25.18))') string,rpdel_top2bot(:ncol,:pver_in)
+       read(60,fmt='(a20,(e25.18))') string,pdeldry_top2bot(:ncol,:pver_in)
+       read(60,fmt='(a20,(e25.18))') string,exner_top2bot(:ncol,:pver_in)
+       read(60,fmt='(a20,(e25.18))') string,t_top2bot(:ncol,:pver_in)
+       read(60,fmt='(a20,(e25.18))') string,s_top2bot(:ncol,:pver_in)
+       read(60,fmt='(a20,(e25.18))') string,q_top2bot(:ncol,:pver_in,1)
+       read(60,fmt='(a20,(e25.18))') string,q_top2bot(:ncol,:pver_in,2)
+       read(60,fmt='(a20,(e25.18))') string,q_top2bot(:ncol,:pver_in,3)
+       read(60,fmt='(a20,(e25.18))') string,zi_top2bot(:ncol,:pverp)
+       read(60,fmt='(a20,(e25.18))') string,zm_top2bot(:ncol,:pver)
+       read(60,fmt='(a20,(e25.18))') string,lnpint_top2bot(:ncol,:pverp)
+       read(60,fmt='(a20,(e25.18))') string,lnpmid_top2bot(:ncol,:pver)
+       read(60,fmt='(a20,(e25.18))') string,precl(:ncol)
+       read(60,fmt='(a20,(e25.18))') string,state%phis(:ncol)
+       read(60,fmt='(a20,(e25.18))') string,ttend_top2bot(:ncol,:pver_in)
 
        ! Need to swap the bottom and top
-       ! Swap the pdel and pdeldry so they can be used in the wet_to_dry calc
        do k=1,pver
          rk= pver - k +1 
-         state%pdel(:ncol,rk)    = pdel_top2bot(:ncol,k)
-         state%pdeldry(:ncol,rk) = pdeldry_top2bot(:ncol,k)
          state%pmiddry(:ncol,rk) = pmiddry_top2bot(:ncol,k)
-         state%pmid(:ncol,rk) = pmid_top2bot(:ncol,k)
+         state%pmid(:ncol,rk)    = pmid_top2bot(:ncol,k)
+         state%pdel(:ncol,rk)    = pdel_top2bot(:ncol,k)
+         state%rpdel(:ncol,rk)   = rpdel_top2bot(:ncol,k)
+         state%pdeldry(:ncol,rk) = pdeldry_top2bot(:ncol,k)
          state%exner(:ncol,rk)   = exner_top2bot(:ncol,k)
          state%t(:ncol,rk)       = t_top2bot(:ncol,k)
          state%s(:ncol,rk)       = s_top2bot(:ncol,k)
+         state%zm(:ncol,rk)      = zm_top2bot(:ncol,k)
+         state%lnpmid(:ncol,rk)  = lnpmid_top2bot(:ncol,k)
+         state%q(:ncol,rk,1)     = q_top2bot(:ncol,k,1)
+         state%q(:ncol,rk,2)     = q_top2bot(:ncol,k,2)
+         state%q(:ncol,rk,3)     = q_top2bot(:ncol,k,3)
+         if (nstep == 0) tend%dtdt(:ncol,rk)     = ttend_top2bot(:ncol,k)
        end do
 
-      ! Also convert the q from wet to dry
-       do k=1,pver
-         rk= pver - k +1 
-         wet_to_dry(:ncol) = state%pdel(:ncol,rk)/state%pdeldry(:ncol,rk) ! use state vert index
-         state%q(:ncol,rk,1)     = q_top2bot(:ncol,k,1)*wet_to_dry(:ncol)
-         state%q(:ncol,rk,2)     = q_top2bot(:ncol,k,2)*wet_to_dry(:ncol)
-         state%q(:ncol,rk,3)     = q_top2bot(:ncol,k,3)*wet_to_dry(:ncol)
-      end do
+       do k=1,pverp
+         rk= pverp - k +1 
+         state%pint(:ncol,rk)    = pint_top2bot(:ncol,k)
+         state%lnpint(:ncol,rk)  = lnpint_top2bot(:ncol,k)
+         state%zi(:ncol,rk)      = zi_top2bot(:ncol,k)
+       end do
+
+       call CAM_ccpp_physics_timestep_initial('cam_kessler_test', precl, errmsg, errflg)
+       col_start = 1
+       col_end = ncol
 
        call CAM_ccpp_physics_run('cam_kessler_test', 'physics', col_start, col_end, precl, errmsg, errflg)
        if (errflg /= 0) then
@@ -116,31 +130,33 @@ contains
 
        write(6,*) 'At time step', j, 'in host model Temperature =', state%T(8, :pver)
 
-       ! Convert the q from dry to wet
-       do k=1,pver
-         dry_to_wet(:ncol) = state%pdeldry(:ncol,k)/state%pdel(:ncol,k)
-         state%q(:ncol,k,1) = state%q(:ncol,k,1)*dry_to_wet(:ncol)
-         state%q(:ncol,k,2) = state%q(:ncol,k,2)*dry_to_wet(:ncol)
-         state%q(:ncol,k,3) = state%q(:ncol,k,3)*dry_to_wet(:ncol)
-       end do
-
-         write(61,'(a10,i4)') 'nwrite=',nwrite
-         write(61,'(a20,2i4,f20.13)') 'ncol, pver, ztodt=',ncol, pver, ztodt
-         write(61,fmt='(a10,(e22.15))') 'pmiddry=',state%pmiddry(:ncol,pver:1:-1)
-         write(61,fmt='(a10,(e22.15))') 'pmid=',state%pmid(:ncol,pver:1:-1)
-         write(61,fmt='(a10,(e22.15))') 'pdel=',state%pdel(:ncol,pver:1:-1)
-         write(61,fmt='(a10,(e22.15))') 'pdeldry=',state%pdeldry(:ncol,pver:1:-1)
-         write(61,fmt='(a10,(e22.15))') 'exner=',state%exner(:ncol,pver:1:-1)
-         write(61,fmt='(a10,(e22.15))') 'state%t=',state%t(:ncol,pver:1:-1)
-         write(61,fmt='(a10,(e22.15))') 'state%s=',state%s(:ncol,pver:1:-1)
-         write(61,fmt='(a10,(e22.15))') 'qv=',state%q(:ncol,pver:1:-1,1)
-         write(61,fmt='(a10,(e22.15))') 'qc=',state%q(:ncol,pver:1:-1,2)
-         write(61,fmt='(a10,(e22.15))') 'qr=',state%q(:ncol,pver:1:-1,3)
-         write(61,fmt='(a10,(e22.15))') 'precl=',precl(:ncol)
-
-       nwrite = nwrite + 1
 
        call CAM_ccpp_physics_timestep_final('cam_kessler_test', precl, errmsg, errflg)
+
+         write(61,'(a10,i4)') 'nstep=',nstep
+         write(61,'(a20,2i4,f20.13)') 'ncol, pver, ztodt=',ncol, pver, ztodt
+         write(61,fmt='(a10,(e25.18))') 'pmiddry=',state%pmiddry(:ncol,pver:1:-1)
+         write(61,fmt='(a10,(e25.18))') 'pint=',state%pint(:ncol,pverp:1:-1)
+         write(61,fmt='(a10,(e25.18))') 'pmid=',state%pmid(:ncol,pver:1:-1)
+         write(61,fmt='(a10,(e25.18))') 'pdel=',state%pdel(:ncol,pver:1:-1)
+         write(61,fmt='(a10,(e25.18))') 'rpdel=',state%rpdel(:ncol,pver:1:-1)
+         write(61,fmt='(a10,(e25.18))') 'pdeldry=',state%pdeldry(:ncol,pver:1:-1)
+         write(61,fmt='(a10,(e25.18))') 'exner=',state%exner(:ncol,pver:1:-1)
+         write(61,fmt='(a10,(e25.18))') 'state%t=',state%t(:ncol,pver:1:-1)
+         write(61,fmt='(a10,(e25.18))') 'state%s=',state%s(:ncol,pver:1:-1)
+         write(61,fmt='(a10,(e25.18))') 'qv=',state%q(:ncol,pver:1:-1,1)
+         write(61,fmt='(a10,(e25.18))') 'qc=',state%q(:ncol,pver:1:-1,2)
+         write(61,fmt='(a10,(e25.18))') 'qr=',state%q(:ncol,pver:1:-1,3)
+         write(61,fmt='(a20,(e25.18))') 'zi=',state%zi(:ncol,pverp:1:-1)
+         write(61,fmt='(a20,(e25.18))') 'zm=',state%zm(:ncol,pver:1:-1)
+         write(61,fmt='(a20,(e25.18))') 'lnpint=',state%lnpint(:ncol,pverp:1:-1)
+         write(61,fmt='(a20,(e25.18))') 'lnpmid=',state%lnpmid(:ncol,pver:1:-1)
+         write(61,fmt='(a10,(e25.18))') 'precl=',precl(:ncol)
+         write(61,fmt='(a10,(e25.18))') 'phis=',state%phis(:ncol)
+         write(61,fmt='(a10,(e25.18))') 'tend%dtdt=',tend%dtdt(:ncol,pver:1:-1)
+
+       nstep = nstep + 1
+
 
     end do
 
