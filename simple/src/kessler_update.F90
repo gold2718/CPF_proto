@@ -10,6 +10,14 @@ public :: kessler_update_timestep_init, kessler_update_run, kessler_update_final
 contains
 
 !> \section arg_table_kessler_update_timestep_init  Argument Table
+!! [ temp ]
+!!   standard_name = temperature
+!!   state_variable = true
+!!   type = real
+!!   kind = kind_phys
+!!   units = K
+!!   dimensions = (horizontal_dimension, vertical_layer_dimension)
+!!    intent = in
 !! [ temp_prev ]
 !!   standard_name = temperature_from_previous_timestep
 !!   units = K
@@ -39,15 +47,16 @@ contains
 !!   dimensions = ()
 !!   intent = out
 !!
-  subroutine kessler_update_timestep_init(temp_prev, ttend_t, errmsg, errflg)
+  subroutine kessler_update_timestep_init(temp, temp_prev, ttend_t, errmsg, errflg)
 
-    real(r8), intent(out) :: temp_prev(:,:)
-    real(r8), intent(out) :: ttend_t(:,:)
+    real(r8), intent(in)    :: temp(:,:)
+    real(r8), intent(inout) :: temp_prev(:,:)
+    real(r8), intent(inout) :: ttend_t(:,:)
     character(len=512),      intent(out)   :: errmsg
     integer,                 intent(out)   :: errflg
 
 !   Initialize the previous temperature and its tendency to zero
-    temp_prev(:,:)  = 0._r8
+    temp_prev(:,:)  = temp(:,:)
     ttend_t(:,:)    = 0._r8
 
     errmsg = ' '
@@ -177,6 +186,30 @@ contains
 !!   units = kg kg-1
 !!   dimensions = (horizontal_dimension, vertical_layer_dimension)
 !!    intent = in
+!! [ theta ]
+!!   standard_name = potential_temperature
+!!   long_name = potential temperature
+!!   units = K
+!!   dimensions = (horizontal_dimension, vertical_layer_dimension)
+!!   type = real
+!!   kind = r8
+!!   intent = inout
+!! [ exner ]
+!!   standard_name = inverse_exner_function_wrt_surface_pressure
+!!   long_name = inverse exner function w.r.t. surface pressure, (ps/p)^(R/cp)
+!!   state_variable = true
+!!   units = 1
+!!   type = real | kind = kind_phys
+!!   dimensions = (horizontal_loop_extent, vertical_layer_dimension)
+!!   intent = in
+!! [ dt ]
+!!   standard_name = time_step_for_physics
+!!   long_name = time step
+!!   units = s
+!!   dimensions = ()
+!!   type = real
+!!   kind = r8
+!!   intent = in
 !! [ zi ]
 !!   standard_name = geopotential_height_above_surface_at_interfaces
 !!   state_variable = true
@@ -232,7 +265,7 @@ contains
 !!   intent = out
 !!
   subroutine kessler_update_run(nz, pcols, ncol, gravit, cpair, rair, zvir, phis, temp, &
-                 lnpint, lnpmid, pint, pmid, pdel, rpdel, qc,  &
+                 lnpint, lnpmid, pint, pmid, pdel, rpdel, qc, theta, exner, dt,  &
                  zi, zm, temp_prev, ttend_t, st_energy, errmsg, errflg )
 
     integer, intent(in)     :: nz
@@ -251,6 +284,9 @@ contains
     real(r8), intent(in)    :: pdel(:,:)
     real(r8), intent(in)    :: rpdel(:,:)
     real(r8), intent(in)    :: qc(:,:)
+    real(r8), intent(in)    :: theta(:,:)
+    real(r8), intent(in)    :: exner(:,:)
+    real(r8), intent(in)    :: dt
 
     real(r8), intent(inout) :: zi(:,:)
     real(r8), intent(inout) :: zm(:,:)
@@ -265,6 +301,7 @@ contains
     integer                 :: vert_surf, vert_toa
     real(r8)                :: rairv(pcols,nz)
     real(r8)                :: zvirv(pcols,nz)
+    real(r8)                :: ptend_s(pcols,nz)
 
     errmsg = ' '
     errflg = 0
@@ -274,7 +311,8 @@ contains
 
     ! Back out tendencies from updated fields
     do k = 1, nz
-      ttend_t(:ncol,k) = ttend_t(:ncol,k) + (temp(:ncol,k) - temp_prev(:ncol,k))
+      ptend_s(:ncol,k) = (theta(:ncol,k) * exner(:ncol,k) - temp_prev(:ncol,k)) * cpair / dt
+      ttend_t(:ncol,k) = ttend_t(:ncol,k) + ptend_s(:ncol,k)/cpair
     end do
  
     ! Kessler is bottom to top

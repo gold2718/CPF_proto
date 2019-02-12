@@ -64,6 +64,7 @@ contains
     ! loop over all time steps
     nstep=0
     do j = 1, ntimes
+
        ncol = pcols
        read(60,fmt='(a10,i4)') string(1:8),nwrite_in
        read(60,fmt='(a20,2i4,f20.13)') string(1:19),ncol, pver_in, ztodt
@@ -103,7 +104,6 @@ contains
          state%q(:ncol,rk,1)     = q_top2bot(:ncol,k,1)
          state%q(:ncol,rk,2)     = q_top2bot(:ncol,k,2)
          state%q(:ncol,rk,3)     = q_top2bot(:ncol,k,3)
-         if (nstep == 0) tend%dtdt(:ncol,rk)     = ttend_top2bot(:ncol,k)
        end do
 
        do k=1,pverp
@@ -113,9 +113,16 @@ contains
          state%zi(:ncol,rk)      = zi_top2bot(:ncol,k)
        end do
 
+       ! Initialize the timestep
        call CAM_ccpp_physics_timestep_initial('cam_kessler_test', precl, errmsg, errflg)
        col_start = 1
        col_end = ncol
+
+       ! Initialize the total tendency after the timestep initialization
+       do k=1,pver
+         rk= pver - k +1 
+         tend%dtdt(:ncol,rk)     = ttend_top2bot(:ncol,k)
+       end do
 
        call CAM_ccpp_physics_run('cam_kessler_test', 'physics', col_start, col_end, precl, errmsg, errflg)
        if (errflg /= 0) then
@@ -144,7 +151,7 @@ contains
          write(61,fmt='(a10,(e25.18))') 'exner=',state%exner(:ncol,pver:1:-1)
          write(61,fmt='(a10,(e25.18))') 'state%t=',state%t(:ncol,pver:1:-1)
          write(61,fmt='(a10,(e25.18))') 'state%s=',state%s(:ncol,pver:1:-1)
-         write(61,fmt='(a10,(e25.18))') 'qv=',state%q(:ncol,pver:1:-1,1)
+         write(61,fmt='(a10,(e22.15))') 'qv=',state%q(:ncol,pver:1:-1,1)
          write(61,fmt='(a10,(e25.18))') 'qc=',state%q(:ncol,pver:1:-1,2)
          write(61,fmt='(a10,(e25.18))') 'qr=',state%q(:ncol,pver:1:-1,3)
          write(61,fmt='(a20,(e25.18))') 'zi=',state%zi(:ncol,pverp:1:-1)
