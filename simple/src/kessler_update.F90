@@ -192,7 +192,7 @@ contains
 !!   units = K
 !!   dimensions = (horizontal_dimension, vertical_layer_dimension)
 !!   type = real
-!!   kind = r8
+!!   kind = kind_phys
 !!   intent = inout
 !! [ exner ]
 !!   standard_name = inverse_exner_function_wrt_surface_pressure
@@ -208,7 +208,7 @@ contains
 !!   units = s
 !!   dimensions = ()
 !!   type = real
-!!   kind = r8
+!!   kind = kind_phys
 !!   intent = in
 !! [ zi ]
 !!   standard_name = geopotential_height_above_surface_at_interfaces

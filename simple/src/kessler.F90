@@ -23,25 +23,25 @@ CONTAINS
 !> \section arg_table_kessler_init  Argument Table
 !! [ rd_in ]
 !!   standard_name = gas_constant_dry_air
-!!   units = J/(kgK)
+!!   units =  J kg-1 K-1
 !!   dimensions = ()
 !!   type = real
-!!   kind = r8
+!!   kind = kind_phys
 !!   intent = in
 !! [ cp_in ]
 !!   standard_name = specific_heat_of_dry_air_at_constant_pressure
-!!   units = J/(kgK)
+!!   units =  J kg-1 K-1
 !!   dimensions = ()
 !!   type = real
-!!   kind = r8
+!!   kind = kind_phys
 !!   intent = in
 !! [ lv_in ]
 !!   standard_name = latent_heat_of_vaporization_of_water_at_0c
 !!   long_name = latent heat of vaporization of water at 0C
-!!   units = J/kg
+!!   units = J kg-1
 !!   dimensions = ()
 !!   type = real
-!!   kind = r8
+!!   kind = kind_phys
 !!   intent = in
 !! [ psl_in ]
 !!   standard_name = reference_pressure_at_sea_level
@@ -49,15 +49,15 @@ CONTAINS
 !!   units = mb
 !!   dimensions = ()
 !!   type = real
-!!   kind = r8
+!!   kind = kind_phys
 !!   intent = in
 !! [ rhoqr_in ]
 !!   standard_name = density_of_liquid_water_at_0c
 !!   long_name = density of liquid water at 0C
-!!   units = kg/m^3
+!!   units = kg m-3
 !!   dimensions = ()
 !!   type = real
-!!   kind = r8
+!!   kind = kind_phys
 !!   intent = in
 !! [ errmsg ]
 !!   standard_name = ccpp_error_message
@@ -115,7 +115,7 @@ CONTAINS
 !!   standard_name = pressure_thickness
 !!   state_variable = true
 !!   type = real
-!!   kind = r8
+!!   kind = kind_phys
 !!   units = Pa
 !!   dimensions = (horizontal_dimension, vertical_layer_dimension)
 !!   intent = in
@@ -123,7 +123,7 @@ CONTAINS
 !!   standard_name = pressure_thickness_of_dry_air
 !!   state_variable = true
 !!   type = real
-!!   kind = r8
+!!   kind = kind_phys
 !!   units = Pa
 !!   dimensions = (horizontal_dimension, vertical_layer_dimension)
 !!   intent = in
@@ -133,21 +133,21 @@ CONTAINS
 !!   units = kg kg-1
 !!   dimensions = (horizontal_dimension, vertical_layer_dimension)
 !!   type = real
-!!   kind = r8
+!!   kind = kind_phys
 !!   intent = inout
 !! [ qc ]
 !!   standard_name = cloud_liquid_water_mixing_ratio
 !!   units = kg kg-1
 !!   dimensions = (horizontal_dimension, vertical_layer_dimension)
 !!   type = real
-!!   kind = r8
+!!   kind = kind_phys
 !!   intent = inout
 !! [ qr ]
 !!   standard_name = rain_water_mixing_ratio
 !!   units = gm/gm
 !!   dimensions = (horizontal_dimension, vertical_layer_dimension)
 !!   type = real
-!!   kind = r8
+!!   kind = kind_phys
 !!   intent = inout
 !! [ errmsg ]
 !!   standard_name = ccpp_error_message
@@ -282,7 +282,7 @@ CONTAINS
 !!   units = s
 !!   dimensions = ()
 !!   type = real
-!!   kind = r8
+!!   kind = kind_phys
 !!   intent = in
 !! [ rho ]
 !!   standard_name = dry_air_density
@@ -290,7 +290,7 @@ CONTAINS
 !!   units = kg/m^3
 !!   dimensions = (horizontal_dimension, vertical_layer_dimension)
 !!   type = real
-!!   kind = r8
+!!   kind = kind_phys
 !!   intent = in
 !! [ z ]
 !!   standard_name = geopotential_height_above_surface_at_midpoints
@@ -298,7 +298,7 @@ CONTAINS
 !!   units = m
 !!   dimensions = (horizontal_dimension, vertical_layer_dimension)
 !!   type = real
-!!   kind = r8
+!!   kind = kind_phys
 !!   intent = in
 !! [ pk ]
 !!   standard_name = inverse_exner_function_wrt_surface_pressure
@@ -306,7 +306,7 @@ CONTAINS
 !!   units = 1
 !!   dimensions = (horizontal_dimension, vertical_layer_dimension)
 !!   type = real
-!!   kind = r8
+!!   kind = kind_phys
 !!   intent = in
 !! [ theta ]
 !!   standard_name = potential_temperature
@@ -314,7 +314,7 @@ CONTAINS
 !!   units = K
 !!   dimensions = (horizontal_dimension, vertical_layer_dimension)
 !!   type = real
-!!   kind = r8
+!!   kind = kind_phys
 !!   intent = inout
 !! [ qv ]
 !!   standard_name = water_vapor_specific_humidity
@@ -322,21 +322,21 @@ CONTAINS
 !!   units = kg kg-1
 !!   dimensions = (horizontal_dimension, vertical_layer_dimension)
 !!   type = real
-!!   kind = r8
+!!   kind = kind_phys
 !!   intent = inout
 !! [ qc ]
 !!   standard_name = cloud_liquid_water_mixing_ratio
 !!   units = kg kg-1
 !!   dimensions = (horizontal_dimension, vertical_layer_dimension)
 !!   type = real
-!!   kind = r8
+!!   kind = kind_phys
 !!   intent = inout
 !! [ qr ]
 !!   standard_name = rain_water_mixing_ratio
 !!   units = gm/gm
 !!   dimensions = (horizontal_dimension, vertical_layer_dimension)
 !!   type = real
-!!   kind = r8
+!!   kind = kind_phys
 !!   intent = inout
 !! [ precl ]
 !!   standard_name = precipitation
@@ -344,7 +344,7 @@ CONTAINS
 !!   units = m/s
 !!   dimensions = (horizontal_dimension)
 !!   type = real
-!!   kind = r8
+!!   kind = kind_phys
 !!   intent = out
 !! [ errmsg ]
 !!   standard_name = ccpp_error_message
