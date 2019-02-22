@@ -21,7 +21,13 @@ module state_converters
   ! Convert between wet and dry
   public :: wet_to_dry_run
   public :: dry_to_wet_run
- 
+
+  ! Convert between specific humidity and mole fraction
+  public :: specific_humidity_to_mole_fraction_run
+
+  ! Convert between specific humidity and relative humidity
+  public :: specific_to_relative_humidity_run
+
   ! Private module data (constants set at initialization)
   real(kind_phys), parameter :: unset = 98989.8e99_kind_phys
   real(kind_phys) :: rd = unset    ! gas constant for dry air, J/(kgK)
@@ -213,7 +219,6 @@ CONTAINS
 !!   intent = in
 !! [ rair ]
 !!   standard_name = gas_constant_dry_air
-!!   long_name = long_name="ideal gas constant for dry air
 !!   units = J kg-1 K-1
 !!   dimensions = ()
 !!   type = real | kind = kind_phys
@@ -638,5 +643,123 @@ CONTAINS
 
   end subroutine dry_to_wet_run
 
+!> \section arg_table_specific_humidity_to_mole_fraction_run  Argument Table
+!! [ ncol ]
+!!   standard_name = horizontal_loop_extent
+!!   units = 1
+!!   dimensions = ()
+!!   type = integer
+!!   intent = in
+!! [ nz ]
+!!   standard_name = vertical_layer_dimension
+!!   long_name = number of vertical levels
+!!   units = 1
+!!   dimensions = ()
+!!   type = integer
+!!   intent = in
+!! [ spec_hum ]
+!!   standard_name = water_vapor_specific_humidity
+!!   type = real
+!!   kind = kind_phys
+!!   units = kg kg-1
+!!   dimensions = (horizontal_loop_extent, vertical_layer_dimension)
+!!   intent = in
+!! [ h2o_mole ]
+!!   standard_name = water_vapor_mole_fraction
+!!   type = real
+!!   kind = kind_phys
+!!   units = mole mole-1
+!!   dimensions = (horizontal_loop_extent, vertical_layer_dimension)
+!!   intent = out
+!! [ errmsg ]
+!!    standard_name = ccpp_error_message
+!!    long_name = Error message for error handling in CCPP
+!!    units = 1
+!!    dimensions = ()
+!!    type = character | kind = len=512
+!!    intent = out
+!! [ errflg ]
+!!    standard_name = ccpp_error_flag
+!!    long_name = Error flag for error handling in CCPP
+!!    units = flag
+!!    dimensions = ()
+!!    type = integer
+!!    intent = out
+!!
+  subroutine specific_humidity_to_mole_fraction_run(ncol, nz, spec_hum, h2o_mole, errmsg, errflg)
+
+  integer,          intent(in)  :: ncol 
+  integer,          intent(in)  :: nz 
+  real(kind_phys),  intent(in)  :: spec_hum(:,:)
+  real(kind_phys),  intent(out) :: h2o_mole(:,:)
+  character(len=*), intent(out) :: errmsg
+  integer,          intent(out) :: errflg
+
+  errmsg = ''
+  errflg = 0
+
+  h2o_mole(:,:) = spec_hum(:,:)
+
+  end subroutine specific_humidity_to_mole_fraction_run
+
+
+!> \section arg_table_specific_to_relative_humidity_run  Argument Table
+!! [ ncol ]
+!!   standard_name = horizontal_loop_extent
+!!   units = 1
+!!   dimensions = ()
+!!   type = integer
+!!   intent = in
+!! [ nz ]
+!!   standard_name = vertical_layer_dimension
+!!   long_name = number of vertical levels
+!!   units = 1
+!!   dimensions = ()
+!!   type = integer
+!!   intent = in
+!! [ spec_hum ]
+!!   standard_name = water_vapor_specific_humidity
+!!   type = real
+!!   kind = kind_phys
+!!   units = kg kg-1
+!!   dimensions = (horizontal_loop_extent, vertical_layer_dimension)
+!!   intent = in
+!! [ rel_hum ]
+!!   standard_name = water_vapor_relative_humidity
+!!   type = real
+!!   kind = kind_phys
+!!   units = percent
+!!   dimensions = (horizontal_loop_extent, vertical_layer_dimension)
+!!   intent = out
+!! [ errmsg ]
+!!    standard_name = ccpp_error_message
+!!    long_name = Error message for error handling in CCPP
+!!    units = 1
+!!    dimensions = ()
+!!    type = character | kind = len=512
+!!    intent = out
+!! [ errflg ]
+!!    standard_name = ccpp_error_flag
+!!    long_name = Error flag for error handling in CCPP
+!!    units = flag
+!!    dimensions = ()
+!!    type = integer
+!!    intent = out
+!!
+  subroutine specific_to_relative_humidity_run(ncol, nz, spec_hum, rel_hum, errmsg, errflg)
+
+  integer,          intent(in)  :: ncol 
+  integer,          intent(in)  :: nz 
+  real(kind_phys),  intent(in)  :: spec_hum(:,:)
+  real(kind_phys),  intent(out) :: rel_hum(:,:)
+  character(len=*), intent(out) :: errmsg
+  integer,          intent(out) :: errflg
+
+  errmsg = ''
+  errflg = 0
+
+  rel_hum(:,:) = spec_hum(:,:)
+
+  end subroutine specific_to_relative_humidity_run
 
 end module state_converters

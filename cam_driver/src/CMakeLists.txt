@@ -25,6 +25,8 @@ SET(SUITES         ${CAM_DRIVER}/suites)
 SET(CCPP_FRAMEWORK ${CPF_ROOT}/ccpp-framework)
 SET(SIMPLE         ${CPF_ROOT}/simple)
 SET(SIMPLE_SRC     ${SIMPLE}/src)
+SET(MICM_CHEM      ${CPF_ROOT}/MICM_chemistry)
+SET(MICM_CHEM_SRC  ${MICM_CHEM}/src)
 
 # Use rpaths on MacOSX
 set(CMAKE_MACOSX_RPATH 1)
@@ -115,13 +117,19 @@ endif()
 
 add_library(library ${library_files})
 
+file(READ "${SIMPLE_SRC}/simple_schemes.txt" FILE_LIST)
+file(WRITE "${SIMPLE_SRC}/all_schemes.txt" ${FILE_LIST})
+file(READ "${MICM_CHEM_SRC}/MICM_chemistry_schemes.txt" FILE_LIST)
+file(APPEND "${SIMPLE_SRC}/all_schemes.txt" ${FILE_LIST})
+
 # Run ccpp_capgen
 set(CAPGEN_CMD "${CCPP_FRAMEWORK}/scripts/ccpp_capgen.py")
 set(MODEL_FILES "${CAM_VERSTRING}_ccpp_files.txt")
 list(APPEND CAPGEN_CMD "${CAM_SRC}/${MODEL_FILES}")
-list(APPEND CAPGEN_CMD "${SIMPLE_SRC}/simple_schemes.txt")
+list(APPEND CAPGEN_CMD "${SIMPLE_SRC}/all_schemes.txt")
 list(APPEND CAPGEN_CMD "--sdf-pathlist")
-list(APPEND CAPGEN_CMD "${SUITES}/suite_cam_kessler_test_simple1.xml")
+#list(APPEND CAPGEN_CMD "${SUITES}/suite_cam_kessler_test_simple1.xml")
+list(APPEND CAPGEN_CMD "${SUITES}/suite_kessler_micm.xml")
 list(APPEND CAPGEN_CMD "--output-root")
 list(APPEND CAPGEN_CMD "${CCPP_CAP_FILES}")
 list(APPEND CAPGEN_CMD "--generate-host-cap")
@@ -147,12 +155,17 @@ INCLUDE_DIRECTORIES(${CCPP_CAP_FILES})
 ADD_SUBDIRECTORY(${SIMPLE} ${CMAKE_BINARY_DIR}/simple)
 INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/simple)
 
+ADD_SUBDIRECTORY(${MICM_CHEM} ${CMAKE_BINARY_DIR}/MICM_chemistry)
+INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/MICM_chemistry)
+
 ADD_DEPENDENCIES(library base)
 ADD_DEPENDENCIES(simple_cam library)
+ADD_DEPENDENCIES(micmchem library)
 ADD_DEPENDENCIES(caps simple_cam)
+ADD_DEPENDENCIES(caps micmchem)
 
 ADD_EXECUTABLE(cam_kessler ${kessler_source_files})
-TARGET_LINK_LIBRARIES(cam_kessler caps simple_cam library base ${NETCDF_LIBRARIES})
+TARGET_LINK_LIBRARIES(cam_kessler caps simple_cam micmchem library base ${NETCDF_LIBRARIES})
 set_target_properties(cam_kessler PROPERTIES
                                COMPILE_FLAGS "${CMAKE_Fortran_FLAGS}"
                                LINK_FLAGS "${CMAKE_Fortran_FLAGS}")

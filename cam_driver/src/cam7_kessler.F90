@@ -51,11 +51,13 @@ contains
     real(kind_phys)                 :: lnpmid_top2bot(pcols,pver)
     real(kind_phys)                 :: ttend_top2bot(pcols,pver)
 
+    character(len=120) :: jsonfile  ! TEMPORARY VARIABLE
+
     ! Allocate the host variables
     call physics_type_alloc(state, tend, pcols)
 
     ! Use the suite information to setup the run
-    call CAM_ccpp_physics_initialize('cam_kessler_test', precl, errmsg, errflg)
+    call CAM_ccpp_physics_initialize('cam_kessler_micm', precl, errmsg, errflg)
     if (errflg /= 0) then
        write(6, *) trim(errmsg)
        stop
@@ -112,6 +114,12 @@ contains
          state%lnpint(:ncol,rk)  = lnpint_top2bot(:ncol,k)
          state%zi(:ncol,rk)      = zi_top2bot(:ncol,k)
        end do
+
+      ! This is a temporary read until these values are provided by the
+      ! configuratore either within metadata or via the namelist
+#include "model_name.inc"
+      jsonfile = '../../MICM_chemistry/generated/'//trim(model_name)//'/molec_info.json'
+      call json_loader_init( jsonfile, ncnst, nrxtn, nphot )
 
        ! Initialize the timestep
        call CAM_ccpp_physics_timestep_initial('cam_kessler_test', precl, errmsg, errflg)

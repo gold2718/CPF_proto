@@ -167,6 +167,32 @@
     <module>time_manager</module>
   </variable>
 
+  <variable local_name="ncnst" standard_name="number_of_constituents">
+    <type kind="" units="1">integer</type>
+    <dimensions>
+    </dimensions>
+  </variable>
+
+  <variable local_name="nkRxt" standard_name="number_of_kinetics_reactions">
+    <type kind="" units="1">integer</type>
+    <dimensions>
+    </dimensions>
+  </variable>
+
+  <variable local_name="njRxt" standard_name="number_of_photolysis_reactions">
+    <type kind="" units="1">integer</type>
+    <dimensions>
+    </dimensions>
+  </variable>
+
+  <variable local_name="total_dens"
+            standard_name="total_number_density"
+            state_variable="false">
+    <type kind="kind_phys" units=" molecules cm-3">real</type>
+    <dimensions>
+    </dimensions>
+  </variable>
+
   <variable local_name="errmsg"
             standard_name="ccpp_error_message"
             long_name="Error message for error handling in CCPP"

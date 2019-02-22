@@ -1,3 +1,4 @@
 cam7_registry.xml
 physics_types_cam7.F90
-
+../../MICM_chemistry/src/kinetics/kinetics_module.F90
+../../MICM_chemistry/src/const_props_mod.F90
