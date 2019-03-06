@@ -27,6 +27,7 @@ SET(SIMPLE         ${CPF_ROOT}/simple)
 SET(SIMPLE_SRC     ${SIMPLE}/src)
 SET(MICM_CHEM      ${CPF_ROOT}/MICM_chemistry)
 SET(MICM_CHEM_SRC  ${MICM_CHEM}/src)
+SET(MICM_CHEM_SUITES ${MICM_CHEM}/suites)
 
 # Use rpaths on MacOSX
 set(CMAKE_MACOSX_RPATH 1)
@@ -55,6 +56,9 @@ SET(library_files
             constituents.F90
             ppgrid.F90
             time_manager.F90
+            environ_conditions_mod.F90
+            input_file.F90
+            input_slice.F90
 )
 
 #this should call the custome FindNetCDF.cmake file in /src/cmake/modules and populate the NETCDF_INCLUDES and NETCDF_LIBRARIES variables with the appropriate values
@@ -128,8 +132,7 @@ set(MODEL_FILES "${CAM_VERSTRING}_ccpp_files.txt")
 list(APPEND CAPGEN_CMD "${CAM_SRC}/${MODEL_FILES}")
 list(APPEND CAPGEN_CMD "${SIMPLE_SRC}/all_schemes.txt")
 list(APPEND CAPGEN_CMD "--sdf-pathlist")
-#list(APPEND CAPGEN_CMD "${SUITES}/suite_cam_kessler_test_simple1.xml")
-list(APPEND CAPGEN_CMD "${SUITES}/suite_kessler_micm.xml")
+list(APPEND CAPGEN_CMD "${SUITES}/suite_cam_kessler_test_simple1.xml,${MICM_CHEM_SUITES}/suite_micm.xml")
 list(APPEND CAPGEN_CMD "--output-root")
 list(APPEND CAPGEN_CMD "${CCPP_CAP_FILES}")
 list(APPEND CAPGEN_CMD "--generate-host-cap")
@@ -137,7 +140,7 @@ while (VERBOSITY GREATER 0)
   list(APPEND CAPGEN_CMD "--verbose")
   MATH(EXPR VERBOSITY "${VERBOSITY} - 1")
 endwhile ()
-#MESSAGE(STATUS "capgen cmd: ${CAPGEN_CMD}")
+MESSAGE(STATUS "capgen cmd: ${CAPGEN_CMD}")
 EXECUTE_PROCESS(COMMAND ${CAPGEN_CMD} WORKING_DIRECTORY ${CPF_ROOT}
   OUTPUT_VARIABLE CAPGEN_OUT ERROR_VARIABLE CAPGEN_OUT RESULT_VARIABLE RES)
 MESSAGE(STATUS "${CAPGEN_OUT}")

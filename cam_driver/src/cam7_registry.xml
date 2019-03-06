@@ -157,9 +157,28 @@
     </dimensions>
   </variable>
 
+  <variable local_name="vmr"
+            standard_name="concentration"
+            state_variable="false">
+    <type kind="kind_phys" units="mole mole-1">real</type>
+    <dimensions>
+      number_of_constituents
+    </dimensions>
+  </variable>
+
   <variable local_name="timestep"
             standard_name="time_step_for_physics"
             long_name="Model time step"
+            state_variable="false">
+    <type kind="kind_phys" units="s">real</type>
+    <dimensions>
+    </dimensions>
+    <module>time_manager</module>
+  </variable>
+
+  <variable local_name="time"
+            standard_name="model_time"
+            long_name="Model time"
             state_variable="false">
     <type kind="kind_phys" units="s">real</type>
     <dimensions>
@@ -171,18 +190,28 @@
     <type kind="" units="1">integer</type>
     <dimensions>
     </dimensions>
+    <module>kinetics_params</module>
+  </variable>
+
+  <variable local_name="nTotRxt" standard_name="total_number_of_chemical_reactions">
+    <type kind="" units="1">integer</type>
+    <dimensions>
+    </dimensions>
+    <module>kinetics_params</module>
   </variable>
 
   <variable local_name="nkRxt" standard_name="number_of_kinetics_reactions">
     <type kind="" units="1">integer</type>
     <dimensions>
     </dimensions>
+    <module>kinetics_params</module>
   </variable>
 
   <variable local_name="njRxt" standard_name="number_of_photolysis_reactions">
     <type kind="" units="1">integer</type>
     <dimensions>
     </dimensions>
+    <module>kinetics_params</module>
   </variable>
 
   <variable local_name="total_dens"

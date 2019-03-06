@@ -1,6 +1,9 @@
 module cam_kessler_main
 
   use machine, only: kind_phys
+  use const_props_mod,        only: const_props_type
+  use environ_conditions_mod, only: environ_conditions_create, environ_conditions  ! TEMPORARY FOR MICM READ
+
 
   implicit none
 
@@ -22,12 +25,13 @@ contains
     integer,            parameter   :: begchunk = 33 ! Not needed for CAM7
     integer,            parameter   :: endchunk = 33 ! Not needed for CAM7
     integer,            parameter   :: ncols = 1
-    integer,            parameter   :: ntimes = 3
+    integer                         :: ntimes_loop 
+    integer                         :: nkessler_loop  = 3
 
     integer                         :: i, j, k, rk
     integer                         :: ierr
     integer                         :: col_start, col_end
-    integer                         :: ncol, nwrite, pver_in, nwrite_in, nstep
+    integer                         :: ncol, nwrite, pver_in, nwrite_in, nstep, ncnst
     real(kind_phys)                 :: ztodt
     real(kind_phys)                 :: precl(pcols)
     real(kind_phys)                 :: scratch(pcols,pver)
@@ -52,20 +56,42 @@ contains
     real(kind_phys)                 :: ttend_top2bot(pcols,pver)
 
     character(len=120) :: jsonfile  ! TEMPORARY VARIABLE
+    integer                         :: njRxt, nkRxt, nTotRxt
+    type(environ_conditions),pointer :: theEnvConds => null() ! Temporary read for MICM
+    real(kind_phys),allocatable     :: vmr(:)
+    real(kind_phys)                 :: dt 
+    real(kind_phys)                 :: total_dens 
+    integer                         :: file_ntimes
+    real(kind_phys)                 :: sim_beg_time
+    real(kind_phys)                 :: sim_end_time
+    real(kind_phys), allocatable    :: file_times(:)
+    type(const_props_type), allocatable  :: cnst_info(:) 
+    character(len=16)  :: cnst_name
+  character(len=120) :: env_conds_file = '../data/env_conditions.nc'
+  real, parameter :: NOT_SET = -huge(1.0)
+  real :: env_lat = NOT_SET
+  real :: env_lon = NOT_SET
+  real :: env_lev = NOT_SET ! mbar
+  real :: user_begin_time = NOT_SET ! seconds
+  real :: user_end_time = NOT_SET
+  integer :: n
+
+
+
 
     ! Allocate the host variables
     call physics_type_alloc(state, tend, pcols)
 
-    ! Use the suite information to setup the run
-    call CAM_ccpp_physics_initialize('cam_kessler_micm', precl, errmsg, errflg)
-    if (errflg /= 0) then
-       write(6, *) trim(errmsg)
-       stop
-    end if
+!    ! Use the suite information to setup the run
+!    call CAM_ccpp_physics_initialize('cam_kessler_micm', precl, vmr, total_dens, errmsg, errflg)
+!    if (errflg /= 0) then
+!       write(6, *) trim(errmsg)
+!       stop
+!    end if
 
     ! loop over all time steps
     nstep=0
-    do j = 1, ntimes
+    do j = 1, nkessler_loop
 
        ncol = pcols
        read(60,fmt='(a10,i4)') string(1:8),nwrite_in
@@ -115,14 +141,58 @@ contains
          state%zi(:ncol,rk)      = zi_top2bot(:ncol,k)
        end do
 
-      ! This is a temporary read until these values are provided by the
-      ! configuratore either within metadata or via the namelist
-#include "model_name.inc"
-      jsonfile = '../../MICM_chemistry/generated/'//trim(model_name)//'/molec_info.json'
-      call json_loader_init( jsonfile, ncnst, nrxtn, nphot )
+! Temporarily read in the chemistry environmental conditions
+! **********************************************************
+! **********************************************************
+! IMPORTANT --- THESE DO NOT MATCH THE KESSLER SNAPSHOT AND PROBABLY SHOULD IF
+! MAINTAIN READING THE FILE FOR ANY PERIOD OF TIME
+! **********************************************************
+! **********************************************************
+  theEnvConds => environ_conditions_create( env_conds_file, lat=env_lat, lon=env_lon, lev=env_lev )
+  dt = theEnvConds%dtime()
+
+  file_ntimes= theEnvConds%ntimes()
+  allocate(file_times(file_ntimes))
+  file_times = theEnvConds%get_times()
+  sim_beg_time = user_begin_time
+  sim_end_time = user_end_time
+
+  ntimes_loop = 1+int((sim_end_time-sim_beg_time)/dt)
+
+  allocate (vmr(ncnst))
+  do n = 1,ncnst
+     call cnst_info(n)%print()
+     cnst_name = cnst_info(n)%get_name()
+     if (cnst_name == 'N2') then
+        vmr(n) = theEnvConds%getvar(cnst_name,default_value=0.79_kind_phys)
+     else if (cnst_name == 'O2') then
+        vmr(n) = theEnvConds%getvar(cnst_name,default_value=0.21_kind_phys)
+     else
+        vmr(n) = theEnvConds%getvar(cnst_name,default_value=0.00_kind_phys)
+     end if
+
+    ! Use the suite information to setup the run
+    call CAM_ccpp_physics_initialize('cam_kessler_micm', precl, vmr, total_dens, errmsg, errflg)
+    if (errflg /= 0) then
+       write(6, *) trim(errmsg)
+       stop
+    end if
+     write(*,fmt="(' cnst name : ',a20,' init value : ',e13.6)") cnst_name, vmr(n)
+!     if (allocated(wghts) .and. cnst_name == 'CL2') then
+!        wghts(n) = 2._kind_phys
+!     end if
+  enddo
+
+
+!        ! This is a temporary read until these values are provided by the
+!      ! configuratore either within metadata or via the namelist
+!#include "model_name.inc"
+!      jsonfile = '../../MICM_chemistry/generated/'//trim(model_name)//'/molec_info.json'
+!      call json_loader_init( jsonfile, ncnst, nkrxt, nkrxt )
+!      nTotrxt = nkrxt + nkrxt
 
        ! Initialize the timestep
-       call CAM_ccpp_physics_timestep_initial('cam_kessler_test', precl, errmsg, errflg)
+       call CAM_ccpp_physics_timestep_initial('cam_kessler_test', precl, vmr, total_dens, errmsg, errflg)
        col_start = 1
        col_end = ncol
 
@@ -132,7 +202,7 @@ contains
          tend%dtdt(:ncol,rk)     = ttend_top2bot(:ncol,k)
        end do
 
-       call CAM_ccpp_physics_run('cam_kessler_test', 'physics', col_start, col_end, precl, errmsg, errflg)
+       call CAM_ccpp_physics_run('cam_kessler_test', 'physics', col_start, col_end, precl, vmr, total_dens, errmsg, errflg)
        if (errflg /= 0) then
           write(6, *) trim(errmsg)
           call ccpp_physics_suite_part_list('cam_kessler_test', part_names, errmsg, errflg)
@@ -146,7 +216,7 @@ contains
        write(6,*) 'At time step', j, 'in host model Temperature =', state%T(8, :pver)
 
 
-       call CAM_ccpp_physics_timestep_final('cam_kessler_test', precl, errmsg, errflg)
+       call CAM_ccpp_physics_timestep_final('cam_kessler_test', precl, vmr, total_dens, errmsg, errflg)
 
          write(61,'(a10,i4)') 'nstep=',nstep
          write(61,'(a20,2i4,f20.13)') 'ncol, pver, ztodt=',ncol, pver, ztodt
@@ -176,7 +246,7 @@ contains
     end do
 
 
-    call CAM_ccpp_physics_finalize('cam_kessler_test', precl, errmsg, errflg)
+    call CAM_ccpp_physics_finalize('cam_kessler_test', precl, vmr, total_dens, errmsg, errflg)
     if (errflg /= 0) then
        write(6, *) trim(errmsg)
        write(6,'(a)') 'An error occurred in ccpp_timestep_final, Exiting...'
